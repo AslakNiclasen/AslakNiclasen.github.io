@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Assignment 1, Interactive Data Exploration</title>
+
+	<style>
+		#aslak {
+			width: 750px;
+		}
+
+		#jonathan {
+			width: 750px;
+		}
+
+	</style>
+
+	 <script>
+	  // load an image to the bottom of the body
+      window.onload = function () {
+
+        var img = document.createElement("img");
+		img.title="Some bit tunnel"
+
+		// image is loaded from a local folder
+		img.src = "fancy.jpg";
+
+		// setting width and height (quite a large image)
+		img.width = 200;
+		img.height = 200;
+
+		// place the image at the end of the div with id=myDiv
+		document.getElementById("myDiv").appendChild(img);
+      }
+    </script>
+
+</head>
+
+<body>
+
+	<div id=myDiv>
+	<!-- a header, while using inline style for coloring -->
+	<h1 style="color:tomato" >A cool header with a fancy color for the course IDE</h1>
+
+	<!-- Inserting an image in plain html -->
+	<img src="img.png" alt="Example of a horrible visualization"  title="Ugly visualization">
+
+	<br>
+	<br>
+
+			
+			<!-- A list with two links -->	
+			<ul>
+				<li>
+					<a href="http://www.nytimes.com/interactive/2012/05/17/business/dealbook/how-the-facebook-offering-compares.html">Company offerings</a>
+				</li>
+				<li>
+					<a href="http://www.babynamewizard.com/voyager">Baby name popularity</a>
+				</li>
+			</ul>
+
+			<!-- Respective explanations -->
+			<p style="width:50%">
+				<b>Company offerings:</b> The New York Times provides an illustration of company offerings, and their different values throughout a timescale. The development of facebook and it's impact is clearly illustrated as a very big circle. Multiple scales are possible which is very nice. It is a shame that to many smaller companies are bunched up (since the have similar offerings), so the information when hovering is hard to find if you want to find a specific company. Further more the colors doesn't seem to illustrate anything in particular.
+			</p>
+			
+			<p style="width:50%">
+				<b>Baby name popularity:</b> Baby name wizard has made a vizualisation about the number of named babies given a certain name. It depicts this relationship over a timescale, both for boys and girls. It's cool because it's easy as a user to manipulate the input, recieving different outcomes. It's quite a mess with the actual timescale. THe authors could instead have pinpointed exact years. 
+			</p>
+	</div>
+
+	<div>
+		<h2>Aslak would like to visualize:</h2>
+		<h3 id=aslak> <!-- Aslaks thoughts here -->
+			<ol style="padding-top: 26px">
+				<li>
+					I would like to visualize twitter retweets over a small timescale, in order to see how many people can be reached i a global setting.
+				</li>
+				<li>
+					I don't know if there is any data available, but one could perhaps scrape twitter to find out.
+				</li>
+				<li>
+					The intended audience could be companies wanting to know how different social platforms can be used for marketing. This is of course a thought example since most companies already does this.
+				</li>
+				<li>
+					Im thinking a main person as a bubble with name, and then all retweets from that person. But linked transitively outwards, if a retweet of a retweeter is done.
+				</li>
+			</ol>
+		</h3>
+
+		<br>
+
+		<h2>Jonathan would like to visualize:</h2>
+		<h3 id=jonathan> <!-- Jonathans thoughts here -->
+			<ol style="padding-top: 26px">
+				<li>
+				</li>
+				<li>
+				</li>
+				<li>
+				</li>
+				<li>
+				</li>
+			</ol>
+		</h3>
+	</div>
+
+</body>
+</html>

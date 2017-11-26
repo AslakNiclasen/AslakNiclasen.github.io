@@ -1,7 +1,65 @@
 <!DOCTYPE html>
 <html>
+
+<head>
+	<meta http-equiv="refresh" content="0; url=assignment1.html" />
+
+	<link rel="stylesheet" type="text/css" href="mystyle.css">
+
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+
+	<script >
+		
+		d3.select(window).on('load', init);
+
+
+		var hhdata = [
+		    {'name':'Arthur Dent', 
+		     'age':42, 
+		     'species':'Human'},
+		    {'name':'Ford Prefect', 
+		     'age':133, 
+		     'species':'Betelgeusian'},
+		    {'name':'Zaphod Beeblebrox', 
+		     'age':151, 
+		     'species':'Betelgeusian'}
+		  ];
+
+		function init(){
+		  
+		  
+		  d3.selectAll('table')
+		    .append('tbody')
+		    .selectAll('tr')
+		    .data(hhdata)
+		    .enter()
+		    .append('tr')
+		    .html(
+		      function(d) {
+		        return '<td>' + d.name +   '</td>'+
+		               '<td>' + d.age  +   '</td>'+
+		               '<td>' + d.species +'</td>';
+		      }
+		    ); 
+		}
+	</script>
+
+
+</head>
+
 <body>
 <h1>Hello World</h1>
-<p>I'm hosted with GitHub Pages.</p>
+<p>test</p>
+ <table>
+      <!-- Header row -->
+      <tr>
+        <th>Name</th>
+        <th>Age</th>
+        <th>Species</th>
+      </tr>
+      
+      <!-- Table contents empty -->
+    </table>
+
 </body>
 </html>
