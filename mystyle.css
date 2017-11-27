@@ -1,17 +1,32 @@
-table td, table th{
-  text-align: left;
-  border: 1px solid gray;  
-  padding: 15px;
+.link {
+    text-decoration: none;
+    color: black;
+    /*padding: 14px 25px;*/
+    padding: 24px 45px;
+
+    background-color: gray; 
+    position: absolute;
+    top: 50%;
+    left: 1%;
+    transform: translate(-1%, -50%);
 }
 
-
-table th{
-	background-color: lightblue;
+.link:hover {
+    background-color: tomato;
+    /*padding: 14px 25px;*/
+    padding: 24px 45px;
+    
+    position: absolute;
+    top: 50%;
+    left: 1%;
+    transform: translate(-1%, -50%);
 }
 
-tr:hover {background-color: #f5f5f5;}
+#project {
+    padding: 24px 49px;
+}
 
-table{
-  width: 100%;
-  border: 1px solid gray; 
+#aDiv {
+    padding-top: 70px;
+    position: relative;
 }
