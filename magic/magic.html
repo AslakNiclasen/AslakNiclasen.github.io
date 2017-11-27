@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Magic, Interactive Data Exploration</title>
+    	<link rel="stylesheet" type="text/css" href="magic_style.css">
+
+
+        <script>
+        	window.onload = function () {
+
+        		var img = document.createElement("img");
+        		img.title = "Image with gaussian blur";
+        		img.width = 200;
+        		img.height = 200;
+
+        		var slider = document.getElementById("myRange");
+				var output = document.getElementById("demo");
+				output.innerHTML = slider.value; // Display the default slider value
+
+				img.src = "pictures/Original.png";
+				document.getElementById("imageWindow").appendChild(img);
+
+				// Update the current slider value (each time you drag the slider handle)
+				slider.oninput = function() {
+					output.innerHTML = this.value;
+
+					if (slider.value == 0) {
+						img.src = "pictures/Original.png"
+						document.getElementById("imageWindow").appendChild(img);
+					}
+
+					if (slider.value == 1) {
+						img.src = "pictures/Gaus1.png"
+						document.getElementById("imageWindow").appendChild(img);
+					}
+					
+					if (slider.value == 2) {
+						img.src = "pictures/Gaus2.png"
+						document.getElementById("imageWindow").appendChild(img);
+					}
+
+					if (slider.value == 3) {
+						img.src = "pictures/Gaus3.png"
+						document.getElementById("imageWindow").appendChild(img);
+					}
+					
+					if (slider.value == 4) {
+						img.src = "pictures/Gaus4.png"
+						document.getElementById("imageWindow").appendChild(img);
+					}
+
+					if (slider.value == 5) {
+						img.src = "pictures/Gaus5.png"
+						document.getElementById("imageWindow").appendChild(img);
+					}
+					
+					if (slider.value == 6) {
+						img.src = "pictures/Gaus6.png"
+						document.getElementById("imageWindow").appendChild(img);
+					}
+
+					if (slider.value == 7) {
+						img.src = "pictures/Gaus7.png"
+						document.getElementById("imageWindow").appendChild(img);
+					}
+					
+					if (slider.value == 8) {
+						img.src = "pictures/Gaus8.png"
+						document.getElementById("imageWindow").appendChild(img);
+					}
+
+					if (slider.value == 9) {
+						img.src = "pictures/Gaus9.png"
+						document.getElementById("imageWindow").appendChild(img);
+					}
+					
+					if (slider.value == 10) {
+						img.src = "pictures/Gaus10.png"
+						document.getElementById("imageWindow").appendChild(img);
+					}
+
+				}
+
+
+
+
+
+        	}
+
+
+        </script>
+
+    </head>
+    <body>
+    	<h3>How does a convolution with a gaussian filter, with an increasing sigma, change an image?</h3>
+    	<p>Let's find out. Move the slider across to increase/decrease the value of sigma</p> 
+
+    	<div id=imageWindow>
+    		<img src="pictures/Original.png" width="200" height="200">
+    	</div>	
+
+    	<div id="slidecontainer">
+
+    		<input type="range" min="0" max="10" step="1" value="0" class="slider" id="myRange">
+    		<p>Sigma is set to: <span id="demo"></span></p>
+    	</div>
+
+    </body>
+</html>

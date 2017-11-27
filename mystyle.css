@@ -1,7 +1,6 @@
 .link {
     text-decoration: none;
     color: black;
-    /*padding: 14px 25px;*/
     padding: 24px 45px;
 
     background-color: gray; 
@@ -13,17 +12,19 @@
 
 .link:hover {
     background-color: tomato;
-    /*padding: 14px 25px;*/
-    padding: 24px 45px;
-    
-    position: absolute;
-    top: 50%;
-    left: 1%;
-    transform: translate(-1%, -50%);
 }
 
 #project {
-    padding: 24px 49px;
+    padding: 24px 48.5px;
+}
+
+#tryMe {
+    padding: 24px 66px;
+    background-color: lightblue; 
+}
+
+#tryMe:hover {
+    background-color: tomato;
 }
 
 #aDiv {
