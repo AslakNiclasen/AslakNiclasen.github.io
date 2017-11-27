@@ -1,109 +1,164 @@
 <!DOCTYPE html>
 <html>
+    <head>
+        <title>Assignment 1, Interactive Data Exploration</title>
 
-<head>
-	<title>Assignment 1, Interactive Data Exploration</title>
+        <style>
+            #aslak {
+                width: 750px;
+            }
 
-	<style>
-		#aslak {
-			width: 750px;
-		}
+            #jonathan {
+                width: 750px;
+            }
+        </style>
+         <script>
+          // load an image to the bottom of the body
+          window.onload = function () {
 
-		#jonathan {
-			width: 750px;
-		}
+            var img = document.createElement("img");
+            img.title="Some bit tunnel"
 
-	</style>
+            // image is loaded from a local folder
+            img.src = "fancy.jpg";
 
-	 <script>
-	  // load an image to the bottom of the body
-      window.onload = function () {
+            // setting width and height (quite a large image)
+            img.width = 200;
+            img.height = 200;
 
-        var img = document.createElement("img");
-		img.title="Some bit tunnel"
+            var jM = document.createElement("img");
+            jM.title = "Jonathan mockup";
+            jM.src = "JM.jpg";
 
-		// image is loaded from a local folder
-		img.src = "fancy.jpg";
+            jM.height = 400;
+            jM.width = 200;
 
-		// setting width and height (quite a large image)
-		img.width = 200;
-		img.height = 200;
+            var aM1 = document.createElement("img");
+            aM1.title = "Aslak Mockup1";
+            aM1.src = "AM1.jpg";
 
-		// place the image at the end of the div with id=myDiv
-		document.getElementById("myDiv").appendChild(img);
-      }
-    </script>
+            aM1.height = 400;
+            aM1.width = 400;
 
-</head>
+            var aM2 = document.createElement("img");
+            aM2.title = "Aslak Mockup2";
+            aM2.src = "AM2.jpg";
 
-<body>
+            aM2.height = 400;
+            aM2.width = 400;
 
-	<div id=myDiv>
-	<!-- a header, while using inline style for coloring -->
-	<h1 style="color:tomato" >A cool header with a fancy color for the course IDE</h1>
+            // place the image at the end of the div with id=myDiv
+            document.getElementById("myDiv").appendChild(img);
 
-	<!-- Inserting an image in plain html -->
-	<img src="img.png" alt="Example of a horrible visualization"  title="Ugly visualization">
+            // Our mockups
+            document.getElementById("picJ").appendChild(jM);
+            document.getElementById("picA1").appendChild(aM1);
+            document.getElementById("picA2").appendChild(aM2);
 
-	<br>
-	<br>
+          }
+        </script>
 
-			
-			<!-- A list with two links -->	
-			<ul>
-				<li>
-					<a href="http://www.nytimes.com/interactive/2012/05/17/business/dealbook/how-the-facebook-offering-compares.html">Company offerings</a>
-				</li>
-				<li>
-					<a href="http://www.babynamewizard.com/voyager">Baby name popularity</a>
-				</li>
-			</ul>
+    </head>
 
-			<!-- Respective explanations -->
-			<p style="width:50%">
-				<b>Company offerings:</b> The New York Times provides an illustration of company offerings, and their different values throughout a timescale. The development of facebook and it's impact is clearly illustrated as a very big circle. Multiple scales are possible which is very nice. It is a shame that to many smaller companies are bunched up (since the have similar offerings), so the information when hovering is hard to find if you want to find a specific company. Further more the colors doesn't seem to illustrate anything in particular.
-			</p>
-			
-			<p style="width:50%">
-				<b>Baby name popularity:</b> Baby name wizard has made a vizualisation about the number of named babies given a certain name. It depicts this relationship over a timescale, both for boys and girls. It's cool because it's easy as a user to manipulate the input, recieving different outcomes. It's quite a mess with the actual timescale. THe authors could instead have pinpointed exact years. 
-			</p>
-	</div>
+    <body>
 
-	<div>
-		<h2>Aslak would like to visualize:</h2>
-		<h3 id=aslak> <!-- Aslaks thoughts here -->
-			<ol style="padding-top: 26px">
-				<li>
-					I would like to visualize twitter retweets over a small timescale, in order to see how many people can be reached i a global setting.
-				</li>
-				<li>
-					I don't know if there is any data available, but one could perhaps scrape twitter to find out.
-				</li>
-				<li>
-					The intended audience could be companies wanting to know how different social platforms can be used for marketing. This is of course a thought example since most companies already does this.
-				</li>
-				<li>
-					Im thinking a main person as a bubble with name, and then all retweets from that person. But linked transitively outwards, if a retweet of a retweeter is done.
-				</li>
-			</ol>
-		</h3>
+        <div id=myDiv>
+        <!-- a header, while using inline style for coloring -->
+        <h1 style="color:tomato" >A cool header with a fancy color for the course IDE</h1>
 
-		<br>
+        <!-- Inserting an image in plain html -->
+        <img src="img.png" alt="Example of a horrible visualization"  title="Ugly visualization">
 
-		<h2>Jonathan would like to visualize:</h2>
-		<h3 id=jonathan> <!-- Jonathans thoughts here -->
-			<ol style="padding-top: 26px">
-				<li>
-				</li>
-				<li>
-				</li>
-				<li>
-				</li>
-				<li>
-				</li>
-			</ol>
-		</h3>
-	</div>
+        <br>
+        <br>
 
-</body>
+                
+                <!-- A list with two links -->  
+                <ul>
+                    <li>
+                        <a href="http://www.nytimes.com/interactive/2012/05/17/business/dealbook/how-the-facebook-offering-compares.html">Company offerings</a>
+                    </li>
+                    <li>
+                        <a href="http://www.babynamewizard.com/voyager">Baby name popularity</a>
+                    </li>
+                </ul>
+
+                <!-- Respective explanations -->
+                <p style="width:50%">
+                    <b>Company offerings:</b> The New York Times provides an illustration of company offerings, and their different values throughout a timescale. The development of facebook and it's impact is clearly illustrated as a very big circle. Multiple scales are possible which is very nice. It is a shame that too many smaller companies are bunched up (since they have similar offerings), so the information when hovering is hard to find if you want to find a specific company. Furthermore the colors don't seem to illustrate anything in particular as well as the size of the circles. THey both represent the same information as the x and y axes, which may lead to confusion.
+                </p>
+                
+                <p style="width:50%">
+                    <b>Baby name popularity:</b> Baby name wizard has made a vizualisation about the number of babies given a certain name over time. It's cool because it's easy for a user to interact with the data, recieving different output. We believe that the authors could have pinpointed exact years instead of using a decade type scale. They create a cool illustration of rank per decade when the cursor hovers over a particular decade in the data. It would be more user friendly to also include vertical bars to seperate each decade.  
+                </p>
+        </div>
+
+        <div>
+            <h2>Aslak would like to visualize:</h2>
+            <h3 id=aslak> <!-- Aslaks thoughts here -->
+                <ol style="padding-top: 26px">
+                    <li>
+                        I would like to visualize twitter retweets over a small timescale, in order to see how many people can be reached i a global setting. One could perhaps scrape twitter to find dat, but there are quite large datasets available.
+                    </li>
+                    <li>
+                        The story should show how influential a statement/oppinion from a popular person could be on the internet. 
+                    </li>
+                    <li>
+                        The intended audience could be companies wanting to know how different social platforms can be used for marketing. This is of course a thought example since most companies already does this.
+                    </li>
+                    <li>
+                        Im thinking a main person as a bubble with name, and then all retweets from that person as a graph like structure. But linked transitively outwards, if a retweet of a retweeter happens. When you click on a person you should be able to see what was retweeted, highlighting then main persons path back to the original tweet somehow. See illustrative mock-up below
+                    </li>
+
+                    <li>
+                        Extra: One could also as another project vizualise word occurences in twitter feeds, to see the expresiveness in semantics.
+                    </li>
+                </ol>
+            </h3>
+
+            <br>
+
+            <h2>Jonathan would like to visualize:</h2>
+            <h3 id=jonathan> <!-- Jonathans thoughts here -->
+                <ol style="padding-top: 26px">
+                    <li>
+                        I would like to be able to make a visualization on statistics from the american pro basketball league NBA (short for National Basketball Association). A sample dataset of about 50 games is publicly available on this site: <a href="https://www.nbastuffer.com/access-exportable-nba-stats/">NBA stats</a>.
+
+
+                    </li>
+                    <li>
+                        I would like to use the data to find correlations between interesting statistics and what referees were working that game in order to determine things like how much the referees might be influenced by the crowd to favor the home teams. Or what combination of referees have the home team winning more than other combinations of referees.
+
+
+                    </li>
+                    <li>
+                        The intended audience would be the sports fanatic who might think that corruption occurs in sports or maybe someone who wants to evaluate the referees in general.
+
+                    </li>
+                    <li>
+                        Mock up: The plot contains the different data in bars. For each statistic there would be one bar with the average and one bar with the selected referee(s) in order to see if statistics change depending on the combination of referees chosen. See illustration below.
+
+                    </li>
+                </ol>
+            </h3>
+        </div>
+
+        <br>
+
+        <!-- Our mockups -->
+        <div id=pictures>
+            <div id=picJ>
+                <h3>Jonathan mockup </h3>
+            </div>
+
+            <div id=picA1>
+                <h3>Aslak mockup first part</h3>
+            </div>
+
+            <div id=picA2>
+                <h3>Aslak mockup second part</h3>
+            </div>
+        </div>
+
+    </body>
 </html>
