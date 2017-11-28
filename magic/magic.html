@@ -2,111 +2,123 @@
 <html>
     <head>
         <title>Magic, Interactive Data Exploration</title>
-    	<link rel="stylesheet" type="text/css" href="magic_style.css">
+        <link rel="stylesheet" type="text/css" href="magic_style.css">
 
 
         <script>
-        	window.onload = function () {
+            window.onload = function () {
 
-        		var img = document.createElement("img");
-        		img.width = 400;
-        		img.height = 400;
+                var img = document.createElement("img");
+                img.width = 400;
+                img.height = 400;
 
-        		var slider = document.getElementById("myRange");
-				var output = document.getElementById("demo");
-				output.innerHTML = slider.value; // Display the default slider value
+                var slider = document.getElementById("myRange");
+                var output = document.getElementById("demo");
+                output.innerHTML = slider.value; // Display the default slider value
 
-				img.src = "pictures/Original.png";
-				document.getElementById("imageWindow").appendChild(img);
+                img.src = "pictures/Original.png";
+                document.getElementById("imageWindow").appendChild(img);
 
-				// Update the current slider value (each time you drag the slider handle)
-				slider.oninput = function() {
-					output.innerHTML = this.value;
+                // Update the current slider value (each time you drag the slider handle)
+                slider.oninput = function() {
+                    output.innerHTML = this.value;
 
-					if (slider.value == 0) {
-						img.src = "pictures/Original.png"
-						document.getElementById("imageWindow").appendChild(img);
-					}
+                    if (slider.value == 0) {
+                        img.src = "pictures/Original.png"
+                        document.getElementById("imageWindow").appendChild(img);
+                    }
 
-					if (slider.value == 1) {
-						img.src = "pictures/Gaus1.png"
-						document.getElementById("imageWindow").appendChild(img);
-					}
-					
-					if (slider.value == 2) {
-						img.src = "pictures/Gaus2.png"
-						document.getElementById("imageWindow").appendChild(img);
-					}
+                    if (slider.value == 1) {
+                        img.src = "pictures/Gaus1.png"
+                        document.getElementById("imageWindow").appendChild(img);
+                    }
+                    
+                    if (slider.value == 2) {
+                        img.src = "pictures/Gaus2.png"
+                        document.getElementById("imageWindow").appendChild(img);
+                    }
 
-					if (slider.value == 3) {
-						img.src = "pictures/Gaus3.png"
-						document.getElementById("imageWindow").appendChild(img);
-					}
-					
-					if (slider.value == 4) {
-						img.src = "pictures/Gaus4.png"
-						document.getElementById("imageWindow").appendChild(img);
-					}
+                    if (slider.value == 3) {
+                        img.src = "pictures/Gaus3.png"
+                        document.getElementById("imageWindow").appendChild(img);
+                    }
+                    
+                    if (slider.value == 4) {
+                        img.src = "pictures/Gaus4.png"
+                        document.getElementById("imageWindow").appendChild(img);
+                    }
 
-					if (slider.value == 5) {
-						img.src = "pictures/Gaus5.png"
-						document.getElementById("imageWindow").appendChild(img);
-					}
-					
-					if (slider.value == 6) {
-						img.src = "pictures/Gaus6.png"
-						document.getElementById("imageWindow").appendChild(img);
-					}
+                    if (slider.value == 5) {
+                        img.src = "pictures/Gaus5.png"
+                        document.getElementById("imageWindow").appendChild(img);
+                    }
+                    
+                    if (slider.value == 6) {
+                        img.src = "pictures/Gaus6.png"
+                        document.getElementById("imageWindow").appendChild(img);
+                    }
 
-					if (slider.value == 7) {
-						img.src = "pictures/Gaus7.png"
-						document.getElementById("imageWindow").appendChild(img);
-					}
-					
-					if (slider.value == 8) {
-						img.src = "pictures/Gaus8.png"
-						document.getElementById("imageWindow").appendChild(img);
-					}
+                    if (slider.value == 7) {
+                        img.src = "pictures/Gaus7.png"
+                        document.getElementById("imageWindow").appendChild(img);
+                    }
+                    
+                    if (slider.value == 8) {
+                        img.src = "pictures/Gaus8.png"
+                        document.getElementById("imageWindow").appendChild(img);
+                    }
 
-					if (slider.value == 9) {
-						img.src = "pictures/Gaus9.png"
-						document.getElementById("imageWindow").appendChild(img);
-					}
-					
-					if (slider.value == 10) {
-						img.src = "pictures/Gaus10.png"
-						document.getElementById("imageWindow").appendChild(img);
-					}
+                    if (slider.value == 9) {
+                        img.src = "pictures/Gaus9.png"
+                        document.getElementById("imageWindow").appendChild(img);
+                    }
+                    
+                    if (slider.value == 10) {
+                        img.src = "pictures/Gaus10.png"
+                        document.getElementById("imageWindow").appendChild(img);
+                    }
 
-				}
-
-
+                }
 
 
+                // video timestamp.
+                document.getElementById("myBtn").addEventListener("click", displayDate);
+                
+                function displayDate() {
+                
+                    document.getElementById("timestamp").innerHTML = Date();
+                }
 
-        	}
+            }
 
 
         </script>
 
     </head>
     <body>
-    	<h3>How does a convolution with a gaussian filter, with an increasing sigma, change an image?</h3>
-    	<p>Let's find out. Move the slider across to increase/decrease the value of sigma</p> 
+        <h3>How does a convolution with a gaussian filter, with an increasing sigma, change an image?</h3>
+        <p>Let's find out. Move the slider across to increase/decrease the value of sigma</p> 
 
-    	<div id=imageWindow>
-<<<<<<< HEAD
-    		<img src="pictures/Original.png" title="Original Image" width="400" height="400">
-=======
-    		<img src="pictures/Original.png" title="Original image" width="400" height="400">
->>>>>>> origin/master
-    	</div>	
+        <div id=imageWindow>
+            <img src="pictures/Original.png" title="Original Image" width="400" height="400">
+        </div>  
 
-    	<div id="slidecontainer">
+        <div id="slidecontainer">
 
-    		<input type="range" min="0" max="10" step="1" value="0" class="slider" id="myRange">
-    		<p>Sigma is set to: <span id="demo"></span></p>
-    	</div>
+            <input type="range" min="0" max="10" step="1" value="0" class="slider" id="myRange">
+            <p>Sigma is set to: <span id="demo"></span></p>
+        </div>
 
+
+        <div id="videoContainer">
+            <video id="myVideo" width="320" height="240" controls>
+                <source src="pictures/backflip.MOV" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+
+            <button id="myBtn" type="button"  onclick="myVideo.pause()">Click Me!</button>
+            <br>
+            <p id="timestamp"></p>
+        </div>
     </body>
 </html>
