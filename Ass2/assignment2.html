@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+	<script src="d3/d3.min.js"></script>
+<!--<script src="//d3js.org/d3.v4.min.js"></script>-->
+<script src="assignment2.js"></script>
+<style>
+
+html {
+  height:100%; 
+}
+
+body {
+  margin:0;
+  height:100%;
+  
+}
+
+svg {
+  width:75%;
+  height:75%;
+  position:absolute;
+  left:15%;
+}
+
+.textX {
+	font: 15px sans-serif;
+}
+
+.textY {
+	font: 15px sans-serif;
+}
+
+.title {
+	font: 30px sans-serif;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+
+div.tooltip {
+  position: relative;
+  text-align: center;
+  width: 150px;
+  height: 30px;
+  padding: 5px;
+  font: 12px sans-serif;
+  background: tomato;
+  border-radius: 10px;
+}
+
+#mainHeader {
+	position: relative;
+	left: 25%;
+	color: tomato;
+	padding: 2%;
+}
+
+#explanation {
+	padding-left: 4%;
+	padding-right: 4%;
+	font: sans-serif;
+	opacity: 0.8;
+}
+
+#aslak {
+	padding-left: 4%;
+	padding-bottom: 4%;
+	font: sans-serif;
+	opacity: 0.8;
+}
+
+#jonathan {
+	padding-left: 4%;
+	padding-bottom: 4%;
+	font: sans-serif;
+	opacity: 0.8;
+}
+
+
+
+.H2 {
+	position: relative;
+	left: 4%;
+}
+
+#questionsDiv {
+	position: relative;
+	padding: 4%;
+	top: 75%;
+}
+
+.questions {
+	position: relative;
+	padding-left: 4%;
+	opacity: 0.8;
+}
+
+</style>
+</head>
+<body>
+	
+	<div id=introduction>
+		<H1 id="mainHeader">Assignment 2 - Interactive Data Exploration</H1>
+		<H2 class="H2">Introduction</H2>
+		<p id="explanation">
+			We extracted data from the capital region of Copenhagen. The format had to be changed slightly, since it was more appropriate to work with comma seperated values. Furthermore some entries in the later years at 2012 - 2017 had to be removed, since they contained ill-formed values at 999. Finally the data had to be parsed as numbers rather than strings when plotting, otherwise we would end up with string comparison in some cases. After the data preparation we proceeded to create two different plots. The first visualization is a line plot showing the 4 different seasons temperature development over time. The second visualization is a bar chart, showing the absolute temperature difference between the minimum and maximum temperature of each months. Each visualization is explanined in a bit more detail below.
+		</p>
+
+		<br>
+
+	</div>
+
+
+	<div id="jonathanPlot">
+		<H2 class="H2">Line plot visualization</H2>
+		<p id=jonathan>blablabla</p>
+	</div>
+	
+	<div id="aslakPlot">
+		<H2 class="H2">Bar chart visualization</H2>
+		<p id=aslak>The following bar chart visualization shows how much each month vary in temperature. We wanted to do two different vizual idioms on the data available. Therefore we found this to be an interesting and fun thing to visualize. The plot compares the lowest recorded value and the highest recorded value for each individual month, based on years between 1880 - 2011. What's interesting to see, is how the winter months actually vary a bit more in temperature than the summer months. This was to our understanding unexcepted and a fun thing to notice. If you hover across each bar, the <strong>highest</strong> and <strong>lowest</strong> recorded temperature is presented in a small info box. This small feature makes the plot a bit more exciting - while it also constitutes for most of the time spent working on this plot.</p>
+		<svg id=plotarea></svg>
+	</div>
+
+	<div id=questionsDiv>
+		<H1 id=individual>Individual questions</H1>
+		<p class=questions>
+			<strong>How big data sets are reasonable to load in d3 visualizations? - Aslak</strong> <br><br> Since the intention of using d3 is by building the entire visualization from nothing, that means we rely heavily on SVG in order to render the output. Usually SVG isn't capable of handling more than around 10.000 datapoints in a single run. This means that we cannot effectively show more individual datapoints with this approach. Hoverever, let's take a step back an consider what 10.000 datapoints would actually represent individually. It would probably be one big overlapping mess. Therefore one might need to abstract away form using the individual points, and rather change the intended vizual representation of the data. This would in return require less SVG effort, and the visualization would in the end be percieved better.
+		</p>
+	</div>
+
+</body>
