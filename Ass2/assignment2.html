@@ -132,8 +132,12 @@ div.tooltip {
 
 	<div id=questionsDiv>
 		<H1 id=individual>Individual questions</H1>
-		<p class=questions>
-			<strong>How big data sets are reasonable to load in d3 visualizations? - Aslak</strong> <br><br> Since the intention of using d3 is by building the entire visualization from nothing, that means we rely heavily on SVG in order to render the output. Usually SVG isn't capable of handling more than around 10.000 datapoints in a single run. This means that we cannot effectively show more individual datapoints with this approach. Hoverever, let's take a step back an consider what 10.000 datapoints would actually represent individually. It would probably be one big overlapping mess. Therefore one might need to abstract away form using the individual points, and rather change the intended vizual representation of the data. This would in return require less SVG effort, and the visualization would in the end be percieved better.
+		<p class="questions">
+			<strong>How big data sets are reasonable to load in d3 visualizations? - Aslak</strong> <br><br> Since the intention of using d3 is by building the entire visualization from nothing, that means we rely heavily on SVG in order to render the output. Usually SVG isn't capable of handling more than around 10.000 datapoints in a single run. This means that we cannot effectively show more individual datapoints with this approach. Hoverever, let's take a step back an consider what 10.000 datapoints would actually represent individually. It would probably be one big overlapping mess. Therefore one might need to abstract away form using the individual points, and rather change the intended vizual representation of the data. This would in return require less SVG effort, and the visualization would in the end be percieved better. <br> We could have reduced the dataset in this case, if we would look at smaller time scales. THis would also let us visualize other facts about the temperature in Copenhagen. <br> Assume we had many more different areas with recorded temperatures. This would then require a new strategy. An often used one, and maybe an obvious one here, is maps. We could color each geolocation depending on seasons, to see if different places in Denmark had different mean temperatures or similar. Another used visualization idiom for large datasets could be treemaps, often used with population data with millions of datapoints. 
+		</p>
+		<br>
+		<p class="questions">
+			<strong>some question - Jonathan</strong> <br><br> answer
 		</p>
 	</div>
 
