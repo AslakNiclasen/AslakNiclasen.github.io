@@ -136,7 +136,14 @@ div.tooltip {
 
 	<div id="jonathanPlot">
 		<H2 class="H2">Line plot visualization</H2>
-		<p id=jonathan>blablabla</p>
+		<p id=jonathan>
+			Motivation: We wanted to explore the changing temperatures during the different seasons. 
+
+<br>Method: We took the data from the link provided in the assignment text and chose Copenhagen. The data was saved as a .txt file and then changed to a comma-seperated .csv file using manual manipulation of the dataset.
+The dataset was incomplete for a couple of entries (the temperature was set to 999.9). These temperatures were hacked to 9 and 17, which are numbers very close to the average temperature for that season.
+
+<br>Results/Discussion and Conclusion: From the chart we see that all seasons fluctuate a bit as expected. Interestingly, winter appears to fluctuate the most whereas the other 3 seasons fluctuate somewhat equally. 
+The overall tendency on all the seasons can be interpreted by studying the average line for each season. When comparing the temperatures and the corresponding averages, we see that towards year 2000 and beyond, most of the temperatures are above the average whereas around 1900 the opposite is the case. This indicates that, in general, temperatures have increased over the last 100 years despite continous fluctuation which makes it harder for us to feel the changes in our daily life.blablabla</p>
 		<svg id=plotarea2></svg>
 	</div>
 	
@@ -153,8 +160,14 @@ div.tooltip {
 		</p>
 		<br>
 		<p class="questions">
-			<strong>some question - Jonathan</strong> <br><br> answer
-		</p>
+			<strong>So far we've only taught static visualizations. Which dynamic elements or interactions could improve your article? - Jonathan</strong> <br><br>
+			<ul>
+				<li>When hovering the legend names, the particular line should light up in order to more clearly state which lines are what.
+				</li>
+				<li>When hovering the temperature-lines, the difference between that year's temperature and the average should show. This would help show how the temperature has increased. This could also be shown by changing the average line to a line averaging only the year prior to the current one
+</li><li>It is hard to determine a particular year and temperature, so a tooltip showing this information when hovering a specific point would also help gain information about individual points (for example the low-point temperature for the winter of 1942-ish could be interesting).
+</li><li> Lastly for the american people, a dynamic changing between celsius and fahrenheit would increase the audience.
+		</ul></p>
 	</div>
 
 </body>
