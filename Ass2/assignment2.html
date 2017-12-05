@@ -7,21 +7,28 @@
 <script src="assignment2.js"></script>
 <style>
 
-html {
-  height:100%; 
-}
+/*
+The style is currently a mess.
+It should have been done with
+relative positions, but some
+problems occured with the way
+we created a d3 bar plot, and
+so all nodes is placed at and
+absolute position with respect
+to the top.
 
-body {
-  margin:0;
-  height:100%;
-  
-}
+There might be scaling issues
+due to this setting
+*/
+
+
 
 svg {
-  width:75%;
-  height:75%;
-  position:absolute;
-  left:15%;
+  width: 75%;
+  height: 75%;
+  position: absolute;
+  left: 15%;
+  right: 15%;
 }
 
 .textX {
@@ -44,7 +51,6 @@ svg {
   fill: brown;
 }
 
-
 div.tooltip {
   position: relative;
   text-align: center;
@@ -57,7 +63,8 @@ div.tooltip {
 }
 
 #mainHeader {
-	position: relative;
+	position: absolute;
+	top: 0px;
 	left: 25%;
 	color: tomato;
 	padding: 2%;
@@ -68,13 +75,8 @@ div.tooltip {
 	padding-right: 4%;
 	font: sans-serif;
 	opacity: 0.8;
-}
-
-#aslak {
-	padding-left: 4%;
-	padding-bottom: 4%;
-	font: sans-serif;
-	opacity: 0.8;
+	position: absolute;
+	top: 200px;
 }
 
 #jonathan {
@@ -82,19 +84,55 @@ div.tooltip {
 	padding-bottom: 4%;
 	font: sans-serif;
 	opacity: 0.8;
+	position: absolute;
+	top: 400px;
 }
 
+#plotarea {
+	size: auto;
+	padding-left: 4%
+	position: absolute;
+	/*top: 600px;*/
+	top: 1400px;
+}
 
+.H2top {
+	left: 4%;
+	position: absolute;
+	top: 150px;
+}
 
-.H2 {
-	position: relative;
+.H2middle {
+	position: absolute;
+	top: 350px;
 	left: 4%;
 }
 
+.H2bottom {
+	position: absolute;
+	top: 1200px;
+	left: 4%;
+}
+
+#aslak {
+	padding-left: 4%;
+	padding-bottom: 4%;
+	font: sans-serif;
+	opacity: 0.8;
+	position: absolute;
+	top:1250px;
+}
+
+#plotarea2 {
+	position: absolute;
+	top: 600px;
+}
+
+
 #questionsDiv {
-	position: relative;
+	position: absolute;
 	padding: 4%;
-	top: 75%;
+	top: 2100px;
 }
 
 .questions {
@@ -124,7 +162,7 @@ div.tooltip {
 	
 	<div id=introduction>
 		<H1 id="mainHeader">Assignment 2 - Interactive Data Exploration</H1>
-		<H2 class="H2">Introduction</H2>
+		<H2 class="H2top">Introduction</H2>
 		<p id="explanation">
 			We extracted data from the capital region of Copenhagen. The format had to be changed slightly, since it was more appropriate to work with comma seperated values. Furthermore some entries in the later years at 2012 - 2017 had to be removed, since they contained ill-formed values at 999. Finally the data had to be parsed as numbers rather than strings when plotting, otherwise we would end up with string comparison in some cases. After the data preparation we proceeded to create two different plots. The first visualization is a line plot showing the 4 different seasons temperature development over time. The second visualization is a bar chart, showing the absolute temperature difference between the minimum and maximum temperature of each months. Each visualization is explanined in a bit more detail below.
 		</p>
@@ -135,20 +173,20 @@ div.tooltip {
 
 
 	<div id="jonathanPlot">
-		<H2 class="H2">Line plot visualization</H2>
+		<H2 class="H2middle">Line plot visualization</H2>
 		<p id=jonathan>
 			Motivation: We wanted to explore the changing temperatures during the different seasons. 
 
-<br>Method: We took the data from the link provided in the assignment text and chose Copenhagen. The data was saved as a .txt file and then changed to a comma-seperated .csv file using manual manipulation of the dataset.
-The dataset was incomplete for a couple of entries (the temperature was set to 999.9). These temperatures were hacked to 9 and 17, which are numbers very close to the average temperature for that season.
+			<br>Method: We took the data from the link provided in the assignment text and chose Copenhagen. The data was saved as a .txt file and then changed to a comma-seperated .csv file using manual manipulation of the dataset.
+			The dataset was incomplete for a couple of entries (the temperature was set to 999.9). These temperatures were hacked to 9 and 17, which are numbers very close to the average temperature for that season.
 
-<br>Results/Discussion and Conclusion: From the chart we see that all seasons fluctuate a bit as expected. Interestingly, winter appears to fluctuate the most whereas the other 3 seasons fluctuate somewhat equally. 
-The overall tendency on all the seasons can be interpreted by studying the average line for each season. When comparing the temperatures and the corresponding averages, we see that towards year 2000 and beyond, most of the temperatures are above the average whereas around 1900 the opposite is the case. This indicates that, in general, temperatures have increased over the last 100 years despite continous fluctuation which makes it harder for us to feel the changes in our daily life.blablabla</p>
-		<svg id=plotarea2></svg>
+			<br>Results/Discussion and Conclusion: From the chart we see that all seasons fluctuate a bit as expected. Interestingly, winter appears to fluctuate the most whereas the other 3 seasons fluctuate somewhat equally. 
+			The overall tendency on all the seasons can be interpreted by studying the average line for each season. When comparing the temperatures and the corresponding averages, we see that towards year 2000 and beyond, most of the temperatures are above the average whereas around 1900 the opposite is the case. This indicates that, in general, temperatures have increased over the last 100 years despite continous fluctuation which makes it harder for us to feel the changes in our daily life.</p>
+		<svg id="plotarea2"></svg>
 	</div>
 	
 	<div id="aslakPlot">
-		<H2 class="H2">Bar chart visualization</H2>
+		<H2 class="H2bottom">Bar chart visualization</H2>
 		<p id=aslak>The following bar chart visualization shows how much each month vary in temperature. We wanted to do two different vizual idioms on the data available. Therefore we found this to be an interesting and fun thing to visualize. The plot compares the lowest recorded value and the highest recorded value for each individual month, based on years between 1880 - 2011. What's interesting to see, is how the winter months actually vary a bit more in temperature than the summer months. This was to our understanding unexcepted and a fun thing to notice. If you hover across each bar, the <strong>highest</strong> and <strong>lowest</strong> recorded temperature is presented in a small info box. This small feature makes the plot a bit more exciting - while it also constitutes for most of the time spent working on this plot.</p>
 		<svg id=plotarea></svg>
 	</div>
@@ -161,7 +199,7 @@ The overall tendency on all the seasons can be interpreted by studying the avera
 		<br>
 		<p class="questions">
 			<strong>So far we've only taught static visualizations. Which dynamic elements or interactions could improve your article? - Jonathan</strong> <br><br>
-			<ul>
+			<ul style="padding-left: 5%;">
 				<li>When hovering the legend names, the particular line should light up in order to more clearly state which lines are what.
 				</li>
 				<li>When hovering the temperature-lines, the difference between that year's temperature and the average should show. This would help show how the temperature has increased. This could also be shown by changing the average line to a line averaging only the year prior to the current one

@@ -4,7 +4,7 @@ d3.select(window).on('load', init);
 // Initialiation function. Called after body has loaded
 function init() {
 
-    var svg = d3.select('svg');
+    var svg = d3.select("#plotarea");
     var margin = {top: 100, right: 100, bottom: 100, left: 100};
     var width = +svg.node().getBoundingClientRect().width - margin.left - margin.right;
     var height = +svg.node().getBoundingClientRect().height - margin.top - margin.bottom;
@@ -188,7 +188,7 @@ function init() {
         .x(function (d) { return x2(d.x); })
         .y(function (d) { return y2(d.y); });
 
-    var svg2 = d3.select("body").append("svg")
+    var svg2 = d3.select("#plotarea2").append("svg")
         .attr("width", width2 + margin2.left + margin2.right)
         .attr("height", height2 + margin2.top + margin2.bottom)
         .append("g")
