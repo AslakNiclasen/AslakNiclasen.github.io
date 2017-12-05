@@ -147,4 +147,253 @@ function init() {
          .attr("text-anchor", "middle")
          .text("Temperature fluctuations on a monthly basis")
     });
+    
+        // LINE PART STARTS HERE
+    var margin2 = {top: 50, right: 20, bottom: 100, left: 50},
+        width2 = 900 - margin2.left - margin2.right,
+        height2 = 500 - margin2.top - margin2.bottom;
+
+    var x2 = d3.scaleTime().range([0, width2]);
+    var y2 = d3.scaleLinear().range([height2, 0]);
+
+    var winter_temps = d3.line()
+        .x(function(d) { return x2(d.YEAR); })
+        .y(function(d) { return y2(d.DJF); });
+
+    var spring_temps = d3.line()
+        .x(function(d) { return x2(d.YEAR); })
+        .y(function(d) { return y2(d.MAM); });
+
+    var summer_temps = d3.line()
+        .x(function(d) { return x2(d.YEAR); })
+        .y(function(d) { return y2(d.JJA); });
+
+    var fall_temps = d3.line()
+        .x(function(d) { return x2(d.YEAR); })
+        .y(function(d) { return y2(d.SON); });
+
+    // gridlines in x axis function
+    function make_x_gridlines() {
+        return d3.axisBottom(x2)
+            .ticks(12)
+    }
+
+    // gridlines in y axis function
+    function make_y_gridlines() {
+        return d3.axisLeft(y2)
+            .ticks(6)
+    }
+
+    var line2 = d3.line()
+        .x(function (d) { return x2(d.x); })
+        .y(function (d) { return y2(d.y); });
+
+    var svg2 = d3.select("body").append("svg")
+        .attr("width", width2 + margin2.left + margin2.right)
+        .attr("height", height2 + margin2.top + margin2.bottom)
+        .append("g")
+        .attr("transform",
+            "translate(" + margin2.left + "," + margin2.top + ")");
+
+    // Get the data
+    d3.csv("cphWeatherData2.csv", function(error, data) {
+        if (error) throw error;
+
+        var winter_avg = d3.mean(data, function(d) {return d.DJF;});
+        var spring_avg = d3.mean(data, function(d) {return d.MAM;});
+        var summer_avg = d3.mean(data, function(d) {return (d.JJA < 40) ? d.JJA :17;});
+        var fall_avg = d3.mean(data, function(d) {return (d.SON < 40) ? d.SON :9;});
+
+        var winter_avg_line = [
+            { "x": 1880,   "y": winter_avg},
+            { "x": 2017,  "y": winter_avg}
+        ];
+        var spring_avg_line = [
+            { "x": 1880,   "y": spring_avg},
+            { "x": 2017,  "y": spring_avg}
+        ];
+        var summer_avg_line = [
+            { "x": 1880,   "y": summer_avg},
+            { "x": 2017,  "y": summer_avg}
+        ];
+        var fall_avg_line = [
+            { "x": 1880,   "y": fall_avg},
+            { "x": 2017,  "y": fall_avg}
+        ];
+
+        // format the data
+        data.forEach(function(d) {
+            d.YEAR = +d.YEAR;
+            d.DJF = +d.DJF;
+            d.MAM = +d.MAM;
+            d.JJA = (d.JJA < 40) ? +d.JJA :17;
+            d.SON = (d.SON < 40) ? d.SON :9;
+            d.metANN = +d.metANN;
+        });
+
+        // Scale the range of the data
+        x2.domain(d3.extent(data, function(d) { return d.YEAR; }));
+        y2.domain([-5, 25]);
+
+        // Add the valueline path. winter 1
+        svg2.append("path")
+            .data([data])
+            .attr("class", "line2")
+            .attr("d", winter_temps)
+            .style("stroke", "steelblue");
+
+        // Add the valueline path .  spring 2
+        svg2.append("path")
+            .data([data])
+            .attr("class", "line2")
+            .attr("d", spring_temps)
+            .style("stroke", "green");
+
+        // Add the valueline path .  summer 3
+        svg2.append("path")
+            .data([data])
+            .attr("class", "line2")
+            .attr("d", summer_temps)
+            .style("stroke", "tomato");
+
+        // Add the valueline path . fall  4
+        svg2.append("path")
+            .data([data])
+            .attr("class", "line2")
+            .attr("d", fall_temps)
+            .style("stroke", "orange");
+
+        // Add the path . winter average line
+        svg2.append("path")
+            .data([winter_avg_line])
+            .attr("class", "line2")
+            .attr("d", line2)
+            .style("stroke", "blue");
+
+        // Add the path . spring average line
+        svg2.append("path")
+            .data([spring_avg_line])
+            .attr("class", "line2")
+            .attr("d", line2)
+            .style("stroke", "olive");
+
+        // Add the path . summer average line
+        svg2.append("path")
+            .data([summer_avg_line])
+            .attr("data-legend", "hejsa")
+            .attr("class", "line2")
+            .attr("d", line2)
+            .style("stroke", "crimson");
+
+        // Add the path . fall average line
+        svg2.append("path")
+            .data([fall_avg_line])
+            .attr("class", "line2")
+            .attr("d", line2)
+            .style("stroke", "orangered")
+            .attr("data-legend",function(d) {return d.x});
+
+        // add the X gridlines
+        svg2.append("g")
+            .attr("class", "grid")
+            .style("stroke-width", "0.2")
+            .attr("transform", "translate(0," + height2 + ")")
+            .call(make_x_gridlines()
+                .tickSize(-height2)
+                .tickFormat("")
+            );
+
+        // add the Y gridlines
+        svg2.append("g")
+            .attr("class", "grid")
+            .style("stroke-width", "0.2")
+            .call(make_y_gridlines()
+                .tickSize(-width2)
+                .tickFormat("")
+            );
+
+        // Add the X Axis
+        svg2.append("g")
+            .attr("transform", "translate(0," + height2 + ")")
+            .call(d3.axisBottom(x2).tickFormat(d3.format("d")));
+
+        // text label for the x axis
+        svg2.append("text")
+            .attr("transform",
+                "translate(" + (width2/2) + " ," +
+                (height2 + 35) + ")")
+            .style("text-anchor", "middle")
+            .text("Year");
+
+        // Add the Y Axis
+        svg2.append("g")
+            .call(d3.axisLeft(y2));
+
+        // text label for the y axis
+        svg2.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0 - margin2.left)
+            .attr("x",0 - (height2 / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Degrees Celsius");
+
+
+        svg2.append("text")
+            .attr("x", 150)  // space legend
+            .attr("y", 400)
+            .attr("class", "legend2")    // style the legend
+            .style("fill", "tomato")
+            .text("Summer");
+
+        svg2.append("text")
+            .attr("x", 150)  // space legend
+            .attr("y", 430)
+            .attr("class", "legend2")    // style the legend
+            .style("fill", "orange")
+            .text("Fall");
+
+        svg2.append("text")
+            .attr("x", 250)  // space legend
+            .attr("y", 400)
+            .attr("class", "legend2")    // style the legend
+            .style("fill", "green")
+            .text("Spring");
+
+        svg2.append("text")
+            .attr("x", 250)  // space legend
+            .attr("y", 430)
+            .attr("class", "legend2")    // style the legend
+            .style("fill", "steelblue")
+            .text("Winter");
+
+        svg2.append("text")
+            .attr("x", 550)  // space legend
+            .attr("y", 400)
+            .attr("class", "legend2")    // style the legend
+            .style("fill", "crimson")
+            .text("Summer Avg");
+
+        svg2.append("text")
+            .attr("x", 550)  // space legend
+            .attr("y", 430)
+            .attr("class", "legend2")    // style the legend
+            .style("fill", "orangered")
+            .text("Fall Avg");
+
+        svg2.append("text")
+            .attr("x", 680)  // space legend
+            .attr("y", 400)
+            .attr("class", "legend2")    // style the legend
+            .style("fill", "olive")
+            .text("Spring Avg");
+
+        svg2.append("text")
+            .attr("x", 680)  // space legend
+            .attr("y", 430)
+            .attr("class", "legend2")    // style the legend
+            .style("fill", "blue")
+            .text("Winter Avg");
+
+    });
 }
