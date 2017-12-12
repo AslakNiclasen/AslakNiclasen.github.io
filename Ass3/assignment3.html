@@ -38,6 +38,9 @@
 			
 			#graph {
 				height: 500px;
+				border-style: solid;
+				border-width: 1px;
+				border-color: lightgray;
 			}
 			
 			
@@ -73,12 +76,12 @@
 	<h2 id="intro">Trump Family Tree</h2>
 	<p id="explanation">We are given a small data set of the family tree of the Trump family trough a <a href="https://wouterboomsma.github.io/ide2017/week49/trump_family.json">link</a>. We imported the data into our environment instead of using the d3.json function. The example we used as a template in our tree is found <a href="http://jsfiddle.net/cyril123/0vbtvoon/22/">here</a>. 
 
-<br>Motivation:
+<br><br>Motivation:
 <br>
 <br>We decided to use seperate colors to illustrate partners and children in order to clearly seperate the two. This was needed partly because we weren't able to center the data elegantly. The overall layout therefore included placing the nodes at each depth level with a specific space in between them. We also elevated the lines from "Donald Trump" to the two furthest partners as they would otherwise go through each other and be impossible to tell apart from each other. Lastly we decided to place the children links solely from the partner and not from the line between the two as one could typically prefer. We chosed this because the other solution was very confusing to look at since for example the link to the children of "Donald Trump" and "Melanie Trump" would start in between "Ivana Trump" and "Marla Maples". 
 
 
-<br>Improvements:
+<br><br>Improvements:
 <br>
 <br>If we were to add interactive elements to the visualization we would include a highlighting of the path upwards and downwards for a hovered node. Another interactive element would be a tooltip showing personal information such as date of birth and a picture for each hovered element.</p>
 
