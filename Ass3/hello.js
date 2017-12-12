@@ -188,6 +188,7 @@ svg.append("rect")
     .attr("width", 170)
     .attr("x", 90)
     .attr("y", 330)
+    .style("border-radius","25px")
     .style("opacity", "0.1");
 
 // Create the node rectangles.
