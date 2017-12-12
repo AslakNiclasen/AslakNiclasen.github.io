@@ -5,7 +5,7 @@ var margin = {
         left: 10
     },
     width = 1000,
-    height = 1000;
+    height = 500;
 var kx = function (d) {
     return d.x - 35;
 };
