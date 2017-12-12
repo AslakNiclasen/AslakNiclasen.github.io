@@ -195,6 +195,8 @@ nodes.append("rect")
     .attr("class", "node")
     .attr("height", 20)
     .attr("width", 90)
+    .attr("rx", 6)
+    .attr("ry", 6)
     .attr("id", function (d) {
         return d.name;
     })
