@@ -208,7 +208,7 @@ nodes.append("rect")
     })
     .attr("x", kx)
     .attr("y", ky)
-    .attr("border-radius", 25);
+    .attr("border-radius", "25px");
 // Create the node text label.
 nodes.append("text")
     .text(function (d) {
