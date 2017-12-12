@@ -188,7 +188,7 @@ svg.append("rect")
     .attr("width", 170)
     .attr("x", 90)
     .attr("y", 330)
-    .style("border-radius", 25px)
+    .style("border-radius", 25)
     .style("opacity", "0.1");
 
 // Create the node rectangles.
@@ -208,7 +208,7 @@ nodes.append("rect")
     })
     .attr("x", kx)
     .attr("y", ky)
-    .style("border-radius", 25px);
+    .style("border-radius", 25);
 // Create the node text label.
 nodes.append("text")
     .text(function (d) {
