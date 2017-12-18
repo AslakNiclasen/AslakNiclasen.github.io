@@ -3,7 +3,41 @@
     <head>
         <title>Assignment 4, Interactive Data Exploration</title>
 	    	<style>
+			div.tooltip {
+			    position: absolute;
+			    text-align: center;
+			    width: 80px;
+			    height: 21px;
+			    padding: 2px;
+			    font: 15px sans-serif;
+			    background: lightgray;
+			    border: 2px;
+			    border-radius: 8px;
+			    pointer-events: none;
+			    z-index: 1;
+			}
 
+			#graphs {
+			    width: 2000px;
+			    height: 800px;
+			}
+
+			#svg2 {
+			    position: absolute;
+			    left: 1000px;
+			    bottom: 200px;
+			}
+
+			#svg1 {
+			    position: absolute;
+			    bottom: 200px;
+			}
+			div.legend1div {
+			    padding: 2px;
+			    border: 2px;
+			    border-radius: 8px;
+			    pointer-events: none;
+			}
 			body {
 			    font: 10px sans-serif;
 			}
@@ -29,9 +63,6 @@
 				font-size: 250%;
 			}
 			
-			#graph {
-				position: relative;
-			}
 			
 			
 			#intro {
