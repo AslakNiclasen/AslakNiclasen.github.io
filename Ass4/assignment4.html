@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>Assignment 4, Interactive Data Exploration</title>
+        <script src="//d3js.org/d3.v4.min.js"></script>
         <script src="https://unpkg.com/d3-simple-slider@0.2.0/build/d3-simple-slider.js"></script>
 	    	<style>
 			
@@ -141,7 +142,7 @@
 <body>
 	<H1 id="mainHeader">Assignment 4 - Interactive Data Exploration</H1>
 
-    <script src="//d3js.org/d3.v4.min.js"></script>
+    
 	
 	<div id="introDIV">
 	<h2 id="intro">Hands, Hands, Hands Everywhere - Introduction</h2>
@@ -173,7 +174,7 @@
 			<br>
 			<br>
 			I extended the plots with sliders provided for the scatterplot. The purpose of the sliders is for a person to change which principal components the data is plotted against. Note that if you pick the same principal component along each axis a linear correspondance is obtained. This is expected, since the values fetched are the same. THe transition is also set to be a bit delayed. This way the user can see how the points move in 2D space. The larger a principal component one chooses the less variance. As an example try to set the x-axis to the first principal component, and the y-axis to the 40th. You find all points lie on a straight line. Thus hovering from one side to the other shows what hand variance that component is responsible for.
-			Several key issues for doing this required updating the correct data positions, and understanding how to build a slider.
+			Several key issues for doing this required updating the correct data positions, and understanding how to build a slider. I've used a modified version of the build in slider from <a href="https://github.com/johnwalley/d3-simple-slider">here</a>, which handled some setup functions, but it had a flaw when trying to initialize the starting value. But this problem is not visible once you move the sliders.
 		</p>
 		<p id="jonathan">
 			<strong>Jonathan:</strong>

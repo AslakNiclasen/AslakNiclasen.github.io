@@ -314,11 +314,6 @@ function updatePlot2(d, i) {  // Add interactivity
 
 
 
-
-
-
-
-
 function update(i) {
 
     d3.select("#graphs")
@@ -327,6 +322,7 @@ function update(i) {
         .attr("d", line(hands8[i]));
 
 }
+
 
 /* Slider for X-axis*/
 var slider = d3.sliderHorizontal()
@@ -348,7 +344,11 @@ var g = d3.select("div#slider2").append("svg")
 g.call(slider);
 
 
-
+slider.axis = function(_) {
+    if (!arguments.length) return axis;
+    axis = 1;
+    return slider;
+}
 /*Slider for Y-axis */
 var sliderY = d3.sliderHorizontal()
                .min(1)
