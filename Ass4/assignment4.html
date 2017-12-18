@@ -2,48 +2,13 @@
 <html>
     <head>
         <title>Assignment 4, Interactive Data Exploration</title>
+        <script src="https://unpkg.com/d3-simple-slider@0.2.0/build/d3-simple-slider.js"></script>
 	    	<style>
-			div.tooltip {
-			    position: absolute;
-			    text-align: center;
-			    width: 80px;
-			    height: 21px;
-			    padding: 2px;
-			    font: 15px sans-serif;
-			    background: lightgray;
-			    border: 2px;
-			    border-radius: 8px;
-			    pointer-events: none;
-			    z-index: 1;
-			}
+			
 
-			#graphs {
-			    width: 2000px;
-			    height: 800px;
+			#introDIV {
+				position: relative;
 			}
-
-			#svg2 {
-			    position: absolute;
-			    left: 1000px;
-			    bottom: 200px;
-			}
-
-			#svg1 {
-			    position: absolute;
-			    bottom: 200px;
-			}
-			div.legend1div {
-			    padding: 2px;
-			    border: 2px;
-			    border-radius: 8px;
-			    pointer-events: none;
-			}
-			body {
-			    font: 10px sans-serif;
-			}
-
-			/* svg styling */
-
 
 			#pintro {
 				padding-left: 4%;
@@ -54,17 +19,7 @@
 				opacity: 0.8;
 			}
 
-			#mainHeader {
-				position: relative;
-				top: 0px;
-				left: 25%;
-				color: tomato;
-				padding: 2%;
-				font-size: 250%;
-			}
-			
-			
-			
+						
 			#intro {
 				position: relative;
 				padding-left: 4%;
@@ -85,6 +40,67 @@
 				opacity: 0.8;
 			}
 
+
+			div.tooltip {
+			    position: absolute;
+			    text-align: center;
+			    width: 80px;
+			    height: 21px;
+			    padding: 2px;
+			    font: 15px sans-serif;
+			    background: lightgray;
+			    border: 2px;
+			    border-radius: 8px;
+			    pointer-events: none;
+			    z-index: 1;
+			}
+
+			#svg1 {
+			    position: relative;
+			    width: 50%;
+			    float: right;
+			}
+			
+			#svg2 {
+			    position: relative;
+			    width: 50%;
+			    float: left;
+			}
+
+
+
+			
+			div.legend1div {
+			    padding: 2px;
+			    border: 2px;
+			    border-radius: 8px;
+			    pointer-events: none;
+			}
+			body {
+			    font: 10px sans-serif;
+			}
+
+			/* svg styling */
+
+
+
+			#mainHeader {
+				position: relative;
+				top: 0px;
+				text-align: center;
+				color: tomato;
+				font-size: 200%;
+			}
+			
+			
+			#graphs {
+				padding-left: 4%; 
+				width: 1300px;
+			    height: 400px;
+
+			}
+			
+
 			#extensions {
 				position: relative;
 				padding-left: 4%;
@@ -93,7 +109,7 @@
 			#aslak {
 				position: relative;
 				padding-left: 4%;
-				padding-bottom: 4%;
+				padding-bottom: 2%;
 				padding-right: 4%;
 				font-size: 14px;
 				color: grey;
@@ -103,11 +119,18 @@
 			#jonathan {
 				position: relative;
 				padding-left: 4%;
-				padding-bottom: 4%;
 				padding-right: 4%;
 				font-size: 14px;
 				color: grey;
 				opacity: 0.8;	
+			}
+
+			#slider {
+				float: right;
+			}
+
+			#sliderY {
+				float: right;
 			}
 
     		</style>
@@ -118,10 +141,9 @@
 <body>
 	<H1 id="mainHeader">Assignment 4 - Interactive Data Exploration</H1>
 
-	<div id="graph"></div>
-    <script src="//d3js.org/d3.v3.min.js"></script>
-	<script src=""></script>
+    <script src="//d3js.org/d3.v4.min.js"></script>
 	
+	<div id="introDIV">
 	<h2 id="intro">Hands, Hands, Hands Everywhere - Introduction</h2>
 	<p id="pintro">
 		The following assignment uses a multidimensional dataset of a set of human hands. Each hand is created by a set of 56 points(x,y), corresponding to 112 dimensional data representation. In order to find out how different the hands are, a principal component analysis can be used. A PCA, takes a high dimensional dataset an represents it in a lower dimensional space, using principal components. Each principal component is orthogonal to the others. In practice one performs an eigenvalue decomposition of the dataset, returning n eigenvalues, and n eigenvectors, where n is the dimensionality of the data. The eigenvectors are then sorted in descending order based on the eignvalues from high to low. An eigenvector corresponds to a principal component.
@@ -130,7 +152,7 @@
 		Since the data consists of 112 dimensions, there are 112 principal components. gives us an ordered list of components where, the first principal component captures the most variance of the data, the second captures the next most and so on. If the data is plotted along the first two principal components, we are able to see how hands differ from eachother, since they are located at very different positions along the two principal components.
 		<br>
 		<br>
-		Below you will find two plots which provides further insight to how the hands actually look, and how variance in between is captured by PCA. We have used the handed out data, which has an already performed principal component analysis. This data is plotted in a scatterplot to the right. The first principal component is the the x-axis, the second the y-axis. This captures how hands vary along these components. One could have used one of the other principal components and might have found other interesting hand variations in the data. However since we are using the first two principal components we do capture most of the overall variance in the data.
+		Below you will find two plots which provides further insight to how the hands actually look, and how variance in between is captured by PCA. We have used the handed out data, which has an already performed principal component analysis. This data is plotted in a scatterplot to the right. Note that we only use the first 40 principal components since the rest of the data is pure zeros. If we where to use this all hands in the scatterplot would collapse into a single point. The first principal component is the the x-axis, the second the y-axis. This captures how hands vary along these components. One could have used one of the other principal components and might have found other interesting hand variations in the data. However since we are using the first two principal components we do capture most of the overall variance in the data.
 		<br>
 		<br>
 		The second plot shows a hand corresponding to the point marked in the scatterplot. With this annotation one has the opportunity to locate and visually see the variance in the data. Take for example two points, which are approximately at the same y-value (the second principal component). Now pick one point with a low x-value (the first principal component) and one with a high x-value. Moving between these points in the scatterplot, reveals hand varianceby drawing different hands in the first plot. Similar to this, the second principal component captures another interesting difference in the hands. 
@@ -139,14 +161,9 @@
 	<p id="pmotivation">
 		We have made  couple of small decisions in order to let the viewer explore and gain an intuition about the data presented. First, the active transition in the first plot (showing hands), is directly coupled to the point chosen in the scatterplot when one hovers over it. It makes the interaction more smooth, since we don't want the user to click. We also wanted to highlight the difference to the mean hand, therefore when a point is hovered, the original mean hand (in black) is shown underneath the hovered hand. We also highlight both the actual hand in the scatterplot (with a color indicator), while simultaneously updating a legend corresponding to the hand reference in the dataset. This way a user is informed about hands with a large variance. If a user wanted to do something further with the dataset (removing an outlier or similar), they would easily be able to do so.
 	</p>
-
+	</div>
 	
 
-	<!-- PLOTS HERE -->
-	<div id="graphs">
-		<svg id="svg1"></svg>
-		<svg id="svg2"></svg>
-	</div>
 
 
 	<div>
@@ -155,7 +172,8 @@
 			<strong>Aslak:</strong>
 			<br>
 			<br>
-			I extended the plots with...
+			I extended the plots with sliders provided for the scatterplot. The purpose of the sliders is for a person to change which principal components the data is plotted against. Note that if you pick the same principal component along each axis a linear correspondance is obtained. This is expected, since the values fetched are the same. THe transition is also set to be a bit delayed. This way the user can see how the points move in 2D space. The larger a principal component one chooses the less variance. As an example try to set the x-axis to the first principal component, and the y-axis to the 40th. You find all points lie on a straight line. Thus hovering from one side to the other shows what hand variance that component is responsible for.
+			Several key issues for doing this required updating the correct data positions, and understanding how to build a slider.
 		</p>
 		<p id="jonathan">
 			<strong>Jonathan:</strong>
@@ -164,6 +182,29 @@
 			I extended the plot with the tooltip provided in the scatterplot. When a point is hovered the corresponding reference value to that hand is fetched and displayed. One challenge with this, was the location of the tooltip, since it was drawn before the points. Fortunately css styling came to my aid, and I was able to create a new 'layer' and draw the tooltip infront. For this the z-index parameter was used. Another issue was the placement of the tooltip it self, because it had to be relative to the point hovered. However using similar reference as with css, d3 provided relative positionning to the element when being hovered.
 		</p>
 	</div>
+
+		<!-- PLOTS HERE -->
+	<div id="graphs">
+		<svg id="svg2"></svg>
+		<svg id="svg1"></svg>
+	</div>
+	<div class="slider";  style="width: 700px;">
+      <div class="col-sm">
+        <div id="slider2"></div>
+      </div>
+      <h2 style="padding-left: 40%; padding-bottom: 2%;">x-axis slider</h2>
+    </div>
+    <div class="sliderY"; style="width: 700px;">
+      <div class="col-smY">
+        <div id="slider2Y">
+        </div>
+        <h2 style="padding-left: 40%"> y-axis slider</h2>
+      </div>
+    </div>
+
+
+	<script src="assignment4.js"></script>
+
 
 </body>
 </html>
