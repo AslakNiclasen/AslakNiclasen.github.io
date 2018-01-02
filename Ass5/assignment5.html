@@ -1,0 +1,316 @@
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Assignment 5, Interactive Data Exploration</title>
+        <script src='https://d3js.org/d3.v4.min.js'></script>
+        <script src='districts.js'></script>
+        <script src='crime.js'></script>
+        <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+        
+    <style>
+			#mainHeader {
+				position: relative;
+				top: 0px;
+				text-align: center;
+				color: tomato;
+				font-size: 200%;
+			}
+
+            .introPara {
+                position: relative;
+                padding-left: 5%;
+                padding-right: 5%;
+                opacity: 0.8; 
+            }
+
+            #Part3 {
+                position: relative;
+                padding-left: 5%;
+                opacity: 0.8;
+                font-size: 200%; 
+            }
+
+            .buttons {
+                background-color: black;
+                color: white;
+                padding: 12px 25px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                border-radius: 12px;
+                font-size: 20px;
+                margin: 4px 2px;
+                cursor: pointer;
+                border: 2px solid black;
+            }
+	</style>
+    </head>
+    <body>
+
+        <H1 id="mainHeader">Assignment 5 - Interactive Data Exploration</H1>
+        
+        <p class="introPara">
+        The following assignment uses geographical and informatic data corresponding to the state of San Fransisco. With the implementation we wish to highlight geographical interest points based on police information. Note that the solution presented isn't very interactive, because we didn't wish to spend more time on it. <br><br> The state is seperated into 10 police districtions represented as slightly different gray nuances, and on top of these we present a collection of crime incidents. Each individual incident is marked as a black dot, showing it's geographical location. The different buttons can be pressed in order to show the type of incident highlighted over the entire state. The 'other offences' button has a collection of incidents and corresponds to remaining smaller incidents. When a button is pressed, dots representing this type of incident is highlighted with a red color. They can be un-marked by pressing the button again. Multiple button selection is possible, but no color change between incidents is implemented, although we could have done so quite easily. <br><br> From the map we can conclude two main points. The first thing to notice is that incidents are spread out quite a lot over the entire state, except for the island to the top right. Indicating that it might be very controlled or no people live there. Second point to look at is the density of Drug/Narcotics incidents within the small district shaped like a triangle. You could extend this vizualisation, to have different colors within each region, zooming and exploring individual districts and so on.
+        </p>
+
+        <H2 id="Part3">Part 3</H2>
+            <p class="introPara">
+                See discussion forum on absalon for final project description
+            </p>
+
+
+        <svg id="map">
+        </svg>
+        <br>
+        <button class="buttons" id="assault" type="button">Assault</button>
+        <button class="buttons" id="burglary" type="button">Burglary</button>
+        <button class="buttons" id="drugNarcotic" type="button">Drug/Narcotic</button>
+        <button class="buttons" id="fraud" type="button">Fraud</button>
+        <button class="buttons" id="larcenyTheft" type="button">Larceny/Theft</button>
+        <br>
+        <button class="buttons" id="missingPerson" type="button">Missing Person</button>
+        <button class="buttons" id="nonCriminal" type="button">Non Criminal</button>
+        <button class="buttons" id="robbery" type="button">Robbery</button>
+        <button class="buttons" id="suspiciousOcc" type="button">Suspicious Occ</button>
+        <br>
+        <button class="buttons" id="vandalism" type="button">Vandalism</button>
+        <button class="buttons" id="vehicleTheft" type="button">Vehicle Theft</button>
+        <button class="buttons" id="warrants" type="button">Warrants</button>
+        <button class="buttons" id="otherOffenses" type="button">Other Offenses</button>
+
+
+
+        <script>
+
+// map
+var width = 1200,
+    height = 1000;
+
+var projection = d3.geoMercator();
+
+var svg = d3.select('#map')
+  //.append('svg')
+  .attr('width', width)
+  .attr('height', height);
+
+var g = svg.append('g');
+
+var albersProjection = d3.geoAlbers()
+  .scale(350000)
+  .rotate([122.45, 0])
+  .center([0, 37.76])
+  .translate([width/2, height/2]);
+
+var geoPath = d3.geoPath()
+    .projection(albersProjection);
+
+var colorsDistricts = [
+    "#d9d9d9",
+    "#e6e6e6",
+    "#f2f2f2",
+    "#cccccc",
+    "#e6e6e6",
+    "#f2f2f2",
+    "#cccccc",
+    "#d9d9d9",
+    "#e6e6e6",
+    "#cccccc"
+]
+
+
+    
+g.selectAll('path')
+  .data(districts.features)
+  .enter()
+  .append('path')
+  .attr("stroke", "blue")
+  .attr("fill", function(d,i){
+         return colorsDistricts[i]; 
+       })
+  .attr('d', geoPath);
+
+g.selectAll('circle')
+  .data(crime.features)
+  .enter()
+  .append('circle')
+  .attr('r', 1.4)
+  .attr("cx", function(d) { return albersProjection(d.geometry.coordinates)[0]; })
+  .attr("cy", function(d) { return albersProjection(d.geometry.coordinates)[1]; })
+  .attr("fill", "#000000")
+  .attr("class", function(d) { 
+            if (d.properties.Category == 'DRUG/NARCOTIC') {
+                return "drugNarcotic" }
+            else if (d.properties.Category == 'LARCENY/THEFT') {
+                return "larcenyTheft"}
+            else if (d.properties.Category == 'NON-CRIMINAL') {
+                return "nonCriminal"}
+            else if (d.properties.Category == 'MISSING PERSON') {
+                return "missingPerson"}
+            else if (d.properties.Category == 'SUSPICIOUS OCC') {
+                return "suspiciousOcc"}
+            else if (d.properties.Category == 'VEHICLE THEFT') {
+                return "vehicleTheft"}
+            else if (d.properties.Category == 'OTHER OFFENSES') {
+                return "otherOffenses"}
+            else if (d.properties.Category == 'TRESPASS') {
+                return "otherOffenses"}
+            else if (d.properties.Category == 'STOLEN PROPERTY') {
+                return "otherOffenses"}
+            else if (d.properties.Category == 'FORGERY/COUNTERFEITING') {
+                return "otherOffenses"}
+            else if (d.properties.Category == 'RECOVERED VEHICLE') {
+                return "otherOffenses"}
+            else {return d.properties.Category}
+                
+                });
+
+var color = null;
+
+// buttons
+d3.select('#assault')
+  .on("click", onClick);
+
+d3.select('#burglary')
+  .on("click", onClick);
+
+d3.select('#drugNarcotic')
+  .on("click", onClick);
+
+d3.select('#fraud')
+  .on("click", onClick);
+
+d3.select('#larcenyTheft')
+  .on("click", onClick);
+
+d3.select('#missingPerson')
+  .on("click", onClick);
+
+d3.select('#nonCriminal')
+  .on("click", onClick);
+
+d3.select('#robbery')
+  .on("click", onClick);
+
+d3.select('#suspiciousOcc')
+  .on("click", onClick);
+
+d3.select('#vandalism')
+  .on("click", onClick);
+
+d3.select('#vehicleTheft')
+  .on("click", onClick);
+
+d3.select('#warrants')
+  .on("click", onClick);
+
+d3.select('#otherOffenses')
+  .on("click", onClick);
+
+function onClick() {    
+    
+    // different classes of crimes
+    var c1 = '.ASSAULT';
+    var c2 = '.BURGLARY';
+    var c3 = '.drugNarcotic';
+    var c4 = '.FRAUD';
+    var c5 = '.larcenyTheft';
+    var c6 = '.missingPerson';
+    var c7 = '.nonCriminal';
+    var c8 = '.ROBBERY';
+    var c9 = '.suspiciousOcc';
+    var c10 = '.VANDALISM';
+    var c11 = '.vehicleTheft';
+    var c12 = '.WARRANTS';
+    var c13 = '.otherOffenses';
+
+    // check color
+    if (d3.select(this)
+         .style("background-color") == 'rgb(0, 0, 0)')
+    {
+            color = 'rgb(255, 0, 0)';
+    }
+    
+    else {
+        color = 'rgb(0, 0, 0)';
+    }
+
+    
+    // color the correct points based on the buton ids
+    if (d3.select(this).attr("id") == 'assault') {
+        d3.selectAll(c1)
+          .attr("fill", color);    
+    }
+    
+    else if (d3.select(this).attr("id") == 'burglary') {
+        d3.selectAll(c2)
+          .attr("fill", color);      
+    }
+
+    else if (d3.select(this).attr("id") == 'drugNarcotic') {
+        d3.selectAll(c3)
+          .attr("fill", color);      
+    }
+
+    else if (d3.select(this).attr("id") == 'fraud') {
+        d3.selectAll(c4)
+          .attr("fill", color);      
+    }
+
+    else if (d3.select(this).attr("id") == 'larcenyTheft') {
+        d3.selectAll(c5)
+          .attr("fill", color);      
+    }
+
+    else if (d3.select(this).attr("id") == 'missingPerson') {
+        d3.selectAll(c6)
+          .attr("fill", color);      
+    }
+
+    else if (d3.select(this).attr("id") == 'nonCriminal') {
+        d3.selectAll(c7)
+          .attr("fill", color);      
+    }
+
+    else if (d3.select(this).attr("id") == 'robbery') {
+        d3.selectAll(c8)
+          .attr("fill", color);      
+    }
+
+    else if (d3.select(this).attr("id") == 'suspiciousOcc') {
+        d3.selectAll(c9)
+          .attr("fill", color);      
+    }
+
+    else if (d3.select(this).attr("id") == 'vandalism') {
+        d3.selectAll(c10)
+          .attr("fill", color);      
+    }
+
+    else if (d3.select(this).attr("id") == 'vehicleTheft') {
+        d3.selectAll(c11)
+          .attr("fill", color);      
+    }
+
+    else if (d3.select(this).attr("id") == 'warrants') {
+        d3.selectAll(c12)
+          .attr("fill", color);      
+    }
+
+    else {
+        d3.selectAll(c13)
+          .attr("fill", color);      
+    }
+
+
+
+    d3.select(this)
+      .style("background-color", color);
+
+}   
+
+
+
+  </script>
+
+    </body>
+    </html>
