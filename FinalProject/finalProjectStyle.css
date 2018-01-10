@@ -1,0 +1,130 @@
+#mainHeader {
+  position: relative;
+  top: 0px;
+  text-align: center;
+  color: tomato;
+  font-size: 200%;
+  font-family: calibri;
+}
+
+#subTitle {
+  padding: 4%;
+  padding-bottom: 1%;
+  font-family: calibri;
+}
+
+#introParagraph {
+  padding-left: 4%;
+  padding-right: 4%;
+  color: gray;
+  font-family: calibri;
+  font-size: 20px;
+}
+
+#timeLineIntroParagraph {
+  padding-left: 4%;
+  padding-right: 4%;
+  color: gray;
+  font-family: calibri;
+  font-size: 20px; 
+}
+
+#histogramParagraph {
+  padding-left: 4%;
+  padding-right: 4%;
+  color: gray;
+  font-family: calibri;
+  font-size: 20px; 
+}
+
+#scatter1Paragraph {
+  padding-left: 4%;
+  padding-right: 4%;
+  color: gray;
+  font-family: calibri;
+  font-size: 20px; 
+}
+
+#dataExplanation {
+  padding-left: 4%;
+  padding-right: 4%;
+  color: gray;
+  font-family: calibri;
+  font-size: 20px; 
+}
+
+#histogramDiv {
+  width: 1000px;
+  height: 550px;
+  padding-left: 5%;
+  padding-top: 2%;
+}
+
+#histogramSvg {
+  size: auto;
+}
+
+
+#timelineDiv {
+  width: 900px;
+  height: 850px;
+  padding-left: 5%;
+  padding-top: 2%; 
+}
+
+#svgTimeline {
+  size: auto;
+}
+
+.bar {
+  fill: #4d9900;
+}
+
+#datasetOrigin {
+  color: steelblue;
+  text-decoration: none;
+
+}
+#datasetOrigin:visited {
+  color: tomato;
+  text-decoration: none;
+}
+
+#dataFeatures {
+  padding-left: 5%;
+}
+
+div.tooltip {
+  position: relative;
+  text-align: center;
+  width: 150px;
+  height: 30px;
+  padding: 5px;
+  font: 12px sans-serif;
+  background: tomato;
+  border-radius: 10px;
+}
+
+li {
+  color: gray;
+  font-size: 20px;
+  padding-left: 8px;
+  padding-bottom: 3px;
+}
+
+.subHeader {
+  color: black;
+  font-family: calibri;
+  padding-left: 4%;
+  padding-top: 2%;
+  font-size: 22px;
+}
+
+body {
+  background-color: #e0ebeb; 
+}
+
+
+#sliderCTimeline {
+        float: right;
+      }

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <title>Final Project, Interactive Data Exploration</title>
+      
+      <link rel="stylesheet" type="text/css" href="finalProjectStyle.css">
+      <script src="https://d3js.org/d3.v4.min.js"></script>
+      <script src="https://unpkg.com/d3-simple-slider@0.2.0/build/d3-simple-slider.js"></script> <!-- Used for our slider -->
+      <script src="finalProject.js"></script>
+
+      <style>
+      </style>
+
+  </head>
+    <body>
+      <h1 id="mainHeader">Final Project - Interactive Data Exploration 2017/18</h1>
+      <h2 id="subTitle">Exploring executions in the United States from 1977 - 2017</h2>
+      <h3 class="subHeader">Motivation</h3>
+      <p id="introParagraph">
+        The following project is the final project of the course Interactive Data Exploration at Diku 2017/18. It has been a collaboration between Aslak Niclasen and Jonathan Kurish.<br> We've chosen a medium sized dataset which describes all executions performed in the United States from 1977 - 2017. This data is easily available from <a id="datasetOrigin">here</a> and can be downloaded as a .csv file.<br><br> Our motivation for choosing this particular dataset is straightforward. We have alot of information from each individual data-component. This gives us the ability to create a more enriching experience because the viewer has a lot of initial control. By doing so, we can smoothly guide and present aspects of the data, which <strong>we</strong> find interesting. Note the emphasis on we, since we don't which to tell every story possible, but rather enlighten the viewer from our starting point, and let further exploration take over. For the purpose of understanding we start our journey with two main aspects which we want to explore. Firstly: it's interesting to see if certain states are executing more convicted people than others - going further from here whats their race. This could be due to Federal laws in the United States being different from state to state. As an example, some states doens't have death penalties at all. Secondly: we wish to see if convicts whom killed more than 1 person is executed differently. That is, are we using a particular type of execution for multiple homocide convicts. With these questions in mind, we now describe dataset.
+      </p>
+      <h3 class="subHeader">The dataset</h3>
+      <p id="dataExplanation">
+        The dataset consists of 1467 individual rows each corresponding to an execution. Each execution is labeled with a set of distinct features of which the most important are listed below. Note that two rows in the dataset did not contain any Date of execution, and has therefore been discarded. Leaving us a total of 1465 executions.
+        <ul id=dataFeatures>
+          <li>Date of execution</li>
+          <li>Name of the convicted</li>
+          <li>Age</li>
+          <li>Sex</li>
+          <li>Race</li>
+          <li>Number of victims | Their race | Their sex</li>
+          <li>State of crime incident and execution</li>
+          <li>Region of crime incident within state</li>
+          <li>Race of victim(s)</li>
+          <li>Type of execution</li>
+        </ul>
+      </p>
+
+      <h3 class="subHeader">Overview of all executions</h3>
+      <p id="timeLineIntroParagraph">
+        Following the introduction above we now present an overview of the entire dataset. Each execution is marked as a circle where the <span style="font-size: 30px">radius</span> of the circle represent the number of victims, and the <span style="color:red">co</span><span style="color:blue">l</span><span style="color:green">or</span> of the circle represent the Type of execution. Each circle can be hovered, which in return shows additional information on that execution. By adjusting the timeline slider below the graph it's possible for the viewer to see the recorded executions on a yearly basis. The full x-axis represents a single year from 01/01/yyyy - 31/12/yyyy. The y-axis marks the age of the convicted. If one wishes to see the entire 30 year period (all datapoints at the same time), it's possible to switch from a yearly view to a full view instead. If marked the slider is set as inactive and the circles become clickable instead of hovering.<br><br>
+        For even more information, the viewer has the opportunity to toggle different features on and off on both timeline views. As an example consider picking only executions where the type of execution was Lethal Injection. Later we will discuss interesting types of correlations found with the introductary questions in mind.
+      </p>
+
+      <div id="timelineDiv">
+        <svg id="svgTimeline"></svg>
+      </div>
+      <div class="sliderCTimeline";  style="width: 700px;">  
+          <div id="sliderIdTimeline"></div>
+        <h2 style="padding-left: 40%; padding-bottom: 2%;">Pick a year</h2>
+      </div>
+      <!-- Timeline plot here -->
+
+
+      <p id="histogramParagraph">
+        Below is a histogram of each individual type of execution and it's total number of occurences. As seen (when hovering), the most dominant type is Lethal Injection with 1290 records, followed by Electrocution at 158, Gas Chamber at 11, closing at Hanging and Firing Squad both at 3. Thus Lethal Injections has been used about 8 times more than Electrocutions. This finding is important because it shows that certain types of executions are very rare. In fact, the very harsh types of execution (excluding Electrocution) account for only ~1.1%. It might again be due to US laws requiring the convicted should not suffer unnecessary during the execution. From the timeline view we can especially see that Lethal injections are dominating the later years, thus supporting this find. Further more this dataset only consist of data post 1977, which is why this may be a bit scewed. We would probably see a larger extend of hanging and firing squad in earlier years, where the Lethal Injection substances used weren't discovered at that time.
+      </p>
+
+      <!-- Section with a barplot where each type of execution is summed up -->
+      <div id="histogramDiv">
+        <svg id="svgHistogram">
+          <defs>
+            <!-- Had to make a manual arrow to to indicate the bar height of Lethal Injections. -->
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#f00" />
+            </marker>
+          </defs>
+
+          <line x1="415" y1="400" x2="415" y2="30" stroke="#000" stroke-width="3" marker-end="url(#arrow)" />
+        </svg>
+      </div>
+
+      <p id="scatter1Paragraph">
+        In order to find out if the number of victims influence the type of execution, we need to correlate these variables. To do so we present a scatterplot. As can be seen, the two axis represent the two components: The type of execution (x-axis) and the number of victims (y-axis). 
+      </p>
+
+      <!-- Section with type of execution and number of victims, correlation -->
+      <!-- Are bigger murderes getting another type of execution ? -->
+      <div id="scatter1Div">
+        <svg id="svgScatter1"></svg>
+      </div>
+
+
+      <!-- Section with area -->
+      <!-- Are some states more likely to execute more people, and what is their race -->
+      <!-- Conclusion -->
+
+      <!-- Final remarks -->
+
+    </body>
+
+    <script language="javascript" type="text/javascript">
+      var datasetOrigin = "https://deathpenaltyinfo.org/views-executions";
+      document.getElementById("datasetOrigin").setAttribute("href",datasetOrigin);
+    </script>
+</html>
