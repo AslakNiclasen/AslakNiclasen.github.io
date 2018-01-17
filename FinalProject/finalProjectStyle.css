@@ -24,6 +24,7 @@
 #timeLineIntroParagraph {
   padding-left: 4%;
   padding-right: 4%;
+  padding-bottom: 0%;
   color: gray;
   font-family: calibri;
   font-size: 20px; 
@@ -38,6 +39,15 @@
 }
 
 #scatter1Paragraph {
+  padding-left: 4%;
+  padding-right: 4%;
+  padding-top: 5%;
+  color: gray;
+  font-family: calibri;
+  font-size: 20px; 
+}
+
+#conclusionParagraph {
   padding-left: 4%;
   padding-right: 4%;
   color: gray;
@@ -66,11 +76,17 @@
 
 
 #timelineDiv {
-  width: 900px;
-  height: 850px;
-  padding-left: 5%;
-  padding-top: 2%; 
+  size: auto;
+  width: 50%;
+  height: 100%;
+  padding-left: 5%; 
 }
+
+#scatterDiv {
+  padding-left: 5%; 
+  padding-top: 5%;
+}
+
 
 #svgTimeline {
   size: auto;
@@ -105,6 +121,17 @@ div.tooltip {
   border-radius: 10px;
 }
 
+div.tooltipTimeline {
+  position: relative;
+  text-align: center;
+  width: 150px;
+  height: 220px;
+  padding: 5px;
+  font: 12px sans-serif;
+  background: tomato;
+  border-radius: 10px;
+}
+
 li {
   color: gray;
   font-size: 20px;
@@ -125,6 +152,151 @@ body {
 }
 
 
+.buttons {
+  background-color: black;
+  color: white;
+  padding: 12px 25px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  border-radius: 12px;
+  font-size: 20px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border: 2px solid black;
+            }
+
+#changeView {
+  position: relative;
+  left: 125px;
+  top: 675px;
+}
+
+#changeView:hover {
+  background-color: green;
+}
+
+#changeViewHistogram {
+  position: relative;
+  left: 800px;
+  top: 200px;
+}
+
+#changeViewHistogram:hover {
+  background-color: green;
+}
+
 #sliderCTimeline {
         float: right;
-      }
+}
+
+/* dropdown button style */
+.dropbtnX {
+    position: absolute;
+    left: 1175px;
+    top: 3690px;
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    min-width: 200px;
+    border-radius: 10px;
+}
+
+.dropbtnX:hover, .dropbtnX:focus {
+    background-color: #3e8e41;
+}
+
+/* dropdown button style */
+.dropbtnY {
+    position: absolute;
+    left: 1175px;
+    top: 4000px;
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    min-width: 200px;
+    border-radius: 10px;
+}
+
+.dropbtnY:hover, .dropbtnY:focus {
+    background-color: #3e8e41;
+}
+
+.dropdown-contentX {
+    display: none;
+    position: absolute;
+    left: 1175px;
+    top: 3690px;
+    padding-top: 50px;
+    border-radius: 10px;
+    text-align: center;
+    background-color: #e0ebeb;
+    opacity: 0.5;
+    width: 200px;
+    overflow: none;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-contentY {
+    display: none;
+    position: absolute;
+    left: 1175px; /* fixed the desired position of the second dropdown menu */
+    top: 4000px;
+    padding-top: 50px;
+    text-align: center;
+    background-color: #e0ebeb;
+    opacity: 0.5;
+    width: 200px;
+    overflow: none;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.show {display:block;}
+
+
+.buttonsDropdownX {
+  background-color: black;
+  color: white;
+  width: 95%;
+  height: 40px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 1px 1px;
+  cursor: pointer;
+  border-radius: 2px;
+  border: 2px solid black;
+}
+
+.buttonsDropdownX:hover {
+  background-color: green;
+}
+
+
+.buttonsDropdownY {
+  background-color: black;
+  color: white;
+  width: 95%;
+  height: 40px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 1px 1px;
+  cursor: pointer;
+  border-radius: 2px;
+  border: 2px solid black;
+}
+
+.buttonsDropdownY:hover {
+  background-color: green;
+}

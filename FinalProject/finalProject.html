@@ -4,14 +4,15 @@
       <title>Final Project, Interactive Data Exploration</title>
       
       <link rel="stylesheet" type="text/css" href="finalProjectStyle.css">
+      <link rel="stylesheet" type="text/css" href="d3-slider.css">
       <script src="https://d3js.org/d3.v4.min.js"></script>
-      <script src="https://unpkg.com/d3-simple-slider@0.2.0/build/d3-simple-slider.js"></script> <!-- Used for our slider -->
+      <script src="d3-slider.js"></script> <!-- Used for our slider -->
+      
       <script src="finalProject.js"></script>
-
-      <style>
-      </style>
+      <script src="variables.js"></script>
 
   </head>
+
     <body>
       <h1 id="mainHeader">Final Project - Interactive Data Exploration 2017/18</h1>
       <h2 id="subTitle">Exploring executions in the United States from 1977 - 2017</h2>
@@ -38,16 +39,24 @@
 
       <h3 class="subHeader">Overview of all executions</h3>
       <p id="timeLineIntroParagraph">
-        Following the introduction above we now present an overview of the entire dataset. Each execution is marked as a circle where the <span style="font-size: 30px">radius</span> of the circle represent the number of victims, and the <span style="color:red">co</span><span style="color:blue">l</span><span style="color:green">or</span> of the circle represent the Type of execution. Each circle can be hovered, which in return shows additional information on that execution. By adjusting the timeline slider below the graph it's possible for the viewer to see the recorded executions on a yearly basis. The full x-axis represents a single year from 01/01/yyyy - 31/12/yyyy. The y-axis marks the age of the convicted. If one wishes to see the entire 30 year period (all datapoints at the same time), it's possible to switch from a yearly view to a full view instead. If marked the slider is set as inactive and the circles become clickable instead of hovering.<br><br>
-        For even more information, the viewer has the opportunity to toggle different features on and off on both timeline views. As an example consider picking only executions where the type of execution was Lethal Injection. Later we will discuss interesting types of correlations found with the introductary questions in mind.
+        Following the introduction above we now present an overview of the entire dataset. Each execution is marked as a circle where the <span style="font-size: 30px">radius</span> of the circle represent the number of victims, and the <span style="color:red">co</span><span style="color:blue">l</span><span style="color:green">or</span> of the circle represent the Type of execution. Each circle can be hovered, which in return shows additional information on that execution. By adjusting the timeline slider below the graph it's possible for the viewer to see the recorded executions on a yearly basis. The full x-axis represents a single year from 01/01/yyyy - 31/12/yyyy. The y-axis marks the age of the convicted. If one wishes to see the entire 30 year period (all datapoints at the same time), it's possible to switch from a yearly view to a full view instead. If marked the slider is removed and the circles become unclickable due to occlusion of each other.
       </p>
 
       <div id="timelineDiv">
+      <p style="position: relative;
+                left: 1250px;
+                top: 450px;
+                font-family: calibri;
+                font-size: 26px;
+                border-left: solid;
+                padding: 5px"><strong style="color: tomato">Red</strong> - Electrocution<br><br><strong style="color: steelblue">Blue</strong> - Lethal Injection<br><br><strong style="color: gray">Gray</strong> - Gas Chamber<br><br><strong style="color: green">Green</strong> - Hanging<br><br><strong>Black</strong> - Firing Squad </p>
+        <button class="buttons" id="changeView" type="button">Change view</button>
         <svg id="svgTimeline"></svg>
       </div>
-      <div class="sliderCTimeline";  style="width: 700px;">  
-          <div id="sliderIdTimeline"></div>
-        <h2 style="padding-left: 40%; padding-bottom: 2%;">Pick a year</h2>
+      <div class="sliderCTimeline";  style="width: 1000px;">  
+          <div id="sliderIdTimeline" style="width: 950px; padding-left: 4%; padding-top: 20px; "></div>
+          <div id="slider"></div>
+        <!--<h2 id="timeSliderText" style="padding-left: 40%; padding-bottom: 2%;">Pick a year</h2>-->
       </div>
       <!-- Timeline plot here -->
 
@@ -58,6 +67,7 @@
 
       <!-- Section with a barplot where each type of execution is summed up -->
       <div id="histogramDiv">
+        <button class="buttons" id="changeViewHistogram" type="button">Change scale</button>
         <svg id="svgHistogram">
           <defs>
             <!-- Had to make a manual arrow to to indicate the bar height of Lethal Injections. -->
@@ -66,20 +76,45 @@
             </marker>
           </defs>
 
-          <line x1="415" y1="400" x2="415" y2="30" stroke="#000" stroke-width="3" marker-end="url(#arrow)" />
+          <line id="myLine" x1="485" y1="500" x2="485" y2="30" stroke="#000" stroke-width="3" marker-end="url(#arrow)" />
         </svg>
       </div>
 
       <p id="scatter1Paragraph">
-        In order to find out if the number of victims influence the type of execution, we need to correlate these variables. To do so we present a scatterplot. As can be seen, the two axis represent the two components: The type of execution (x-axis) and the number of victims (y-axis). 
+        In order to find answers to our two initial questions, we need to visualize variables against each other. To do so we present a dynamic barplot. As can be seen, the two axis represent the two components one can choose to correlate. From the dropdown menues the user is able to correlate each individual feature to another feature. The very first view is a scatterplot identical to the full view of the timeline. It is not possible to get back to this state again.
       </p>
 
-      <!-- Section with type of execution and number of victims, correlation -->
-      <!-- Are bigger murderes getting another type of execution ? -->
-      <div id="scatter1Div">
-        <svg id="svgScatter1"></svg>
+      <div class="dropdown" style="padding-left: 5%;">
+        <button onclick="pickDropdownX()" class="dropbtnX">Feature on x-axis</button>
+          <div id="myDropdownX" class="dropdown-contentX">
+            <button id="xAge" class="buttonsDropdownX">Age</button><br>
+            <button id="xRace" class="buttonsDropdownX">Race</button><br>
+            <button id="xSex" class="buttonsDropdownX">Sex</button><br>
+            <button id="xState" class="buttonsDropdownX">State</button><br>
+            <button id="xType" class="buttonsDropdownX">Type</button><br>
+            <button id="xVictim" class="buttonsDropdownX">Victim</button>
+          </div>
+        <button onclick="pickDropdownY()" class="dropbtnY">Feature on y-axis</button>
+          <div id="myDropdownY" class="dropdown-contentY">
+            <button id="yAge" class="buttonsDropdownY">Age</button><br>
+            <button id="yRace" class="buttonsDropdownY">Race</button><br>
+            <button id="ySex" class="buttonsDropdownY">Sex</button><br>
+            <button id="yState" class="buttonsDropdownY">State</button><br>
+            <button id="yType" class="buttonsDropdownY">Type</button><br>
+            <button id="yVictim" class="buttonsDropdownY">Victim</button>
+          </div>
       </div>
 
+      <!-- Scatterplot with correlations -->
+      <div id="scatterDiv">
+        <svg id="svgScatter"></svg>
+      </div>
+
+
+      <p id="conclusionParagraph">
+        As seen from both the timeline result and the barplot, we find no correlation between the type of execution and the number of victims. This is perhaps not afterall surprising since the law in the U.S. demands that the convicted should suffer no more than the punishment itself. However some individual states work differently under a Federal law, and such sometimes chooses and appropriate type of execution based on their equipment. Which lead us into an answer to your second initial question. Are some states executing more than others? If we change the scatterplot to present the states as the x-axis, we can clearly see that some states and in particular Colorado (CO) Executes more. <br><br> The viewer is intended to play around with the barplot to find other interesting connections in the dataset.<br><br>
+        As a final conclusion we would like to point out that this dataset doesn't represent a very important factor. We haven't been able to find the timeframe for a convicted situated in prison. It is likely that many of the people executed between 1977 and 2017 have been sitting in jail for a long time. And so to understand the proces of executions, this factor might influence the conclusions we base our findings on. As an example, Timothy mcVeigh, whom killed 168 in the Oklahoma city bombing perfromed his attack in 1995, and was executed in 2001. However John Fergusson whom killed people in Miami in 1978, was executed in 2013. A reason for delay could be federal laws within each state, but statistics on death row time, compared to the convicted would be an interesting thing to look at.
+      </p>
 
       <!-- Section with area -->
       <!-- Are some states more likely to execute more people, and what is their race -->
@@ -92,5 +127,39 @@
     <script language="javascript" type="text/javascript">
       var datasetOrigin = "https://deathpenaltyinfo.org/views-executions";
       document.getElementById("datasetOrigin").setAttribute("href",datasetOrigin);
+
+
+      /* When the user clicks on the button, 
+      toggle between hiding and showing the dropdown content */
+      function pickDropdownX() {
+        console.log("test")
+          document.getElementById("myDropdownX").classList.toggle("show");              
+      }
+
+      function pickDropdownY() {
+          document.getElementById("myDropdownY").classList.toggle("show");
+      }
+
+  // Close the dropdown menus if the user clicks outside of of either
+      window.onclick = function(event) {
+        if (!event.target.matches('.dropbtnY') && !event.target.matches('.dropbtnX')) {
+
+          var dropdownsY = document.getElementsByClassName("dropdown-contentY");
+          var dropdownsX = document.getElementsByClassName("dropdown-contentX");
+          var i;
+          for (i = 0; i < dropdownsY.length; i++) {
+            var openDropdownY = dropdownsY[i];
+            var openDropdownX = dropdownsX[i];
+
+            if (openDropdownY.classList.contains('show')) {
+              openDropdownY.classList.remove('show');
+            }
+            if (openDropdownX.classList.contains('show')) {
+              openDropdownX.classList.remove('show');
+            }
+          }
+        }
+      }
+
     </script>
 </html>
