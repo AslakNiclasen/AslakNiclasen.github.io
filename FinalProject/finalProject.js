@@ -2,6 +2,8 @@ d3.select(window).on('load', init);
 
 var copyOfData = null;
 var copyOfRaceState = null;
+var copyOfSexAge = null;
+var copyOfVictimsAge = null;
 
 // Initialiation function. Called after body has loaded
 function init() {
@@ -80,14 +82,14 @@ function init() {
 
   // based on the dropdown menu
   // here we set the initial scatterplot variables  
-  var xScatter = d3.scaleTime().range([0, widthScatter]);
-  var yScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
+  var xStacked = d3.scaleTime().range([0, widthScatter]);
+  var yStacked = d3.scaleLinear().rangeRound([heightScatter, 0]);
 
-  var xAxisScatter = d3.axisBottom()
-    .scale(xScatter);
+  var xAxisStacked = d3.axisBottom()
+    .scale(xStacked);
 
-  var yAxisScatter = d3.axisLeft()
-    .scale(yScatter);  
+  var yAxisStacked = d3.axisLeft()
+    .scale(yStacked);  
 
   var svgStacked = d3.select("#svgStacked")
       .attr("width", widthScatter + margin.left + margin.right)
@@ -101,12 +103,12 @@ function init() {
       .style("opacity", 0)
       .style("position", "absolute")
       .style("z-index", "10");
-
-  var initxScatter = d3.scaleTime().range([0, widthScatter]);
-  var inityScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
-  var initXdomain = initxScatter.domain([mindate, maxdate]);
-  var initYdomain = inityScatter.domain([0, 80]);
-
+/*
+  var initxStacked = d3.scaleTime().range([0, widthScatter]);
+  var inityStacked = d3.scaleLinear().rangeRound([heightScatter, 0]);
+  var initXdomain = initxStacked.domain([mindate, maxdate]);
+  var initYdomain = inityStacked.domain([0, 80]);
+*/
   // Scatterplot ending varibles ends here
 
   // LOADING CSV FILE AND START PLOTTING ALL 'INITIAL PLOTS'
@@ -120,9 +122,13 @@ function init() {
         .key(function(d) { return d.Method; })
         .entries(data);
 
-       var raceData1 = d3.nest()
+      var raceData1 = d3.nest()
         .key(function(d) { return d.Race; })
         .entries(data);
+
+      var sexData = d3.nest()
+        .key(function(d) { return d.Sex; })
+        .entries(copyOfData);
 
       // bar heights for histogram
       var sumElectrocutions = histogramData[0].values.length;
@@ -481,76 +487,128 @@ function init() {
 
       // TIMELINE END
 
-      // STACKE BARCHART START INITIAL SCATTERPLOT CONTAINS AGE AND DATE - STACKED BARCHART
-      mindate = new Date(1977,0,1);
-      maxdate = new Date(2017,11,31);
-      xScatter.domain([mindate, maxdate])
-      yScatter.domain([0,maxAge])
+      // STACKED BARCHART START INITIAL CONTAINS AGE
+      svgStacked.selectAll("#xaxis").remove();
+        svgStacked.selectAll(".AgeRace").remove();
+        svgStacked.selectAll("#yaxis").remove();
+        svgStacked.selectAll("#xLabelScatter").remove();
+        svgStacked.selectAll("#yLabelScatter").remove();
+        svgStacked.selectAll(".xAxis").remove();
+        svgStacked.selectAll(".yAxis").remove();
+        svgStacked.selectAll("circle").remove();
+        svgStacked.selectAll(".bar").remove();
+        svgStacked.selectAll(".bar1").remove();
+        svgStacked.selectAll(".RaceState").remove();
+
+        //yStackedCounter = 100; // barplot
+        xStacked = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.6);
+        xStacked.domain(agesBand);
+
+        yStacked = d3.scaleLinear().rangeRound([heightScatter, 0]);
+        yStacked.domain([0, 600]);
+
+        xAxisStacked = d3.axisBottom()
+          .scale(xStacked);
+
+        yAxisStacked = d3.axisLeft()
+          .scale(yStacked);
+
+        ageData = d3.nest()
+              .key(function(d) { return d.Age; })
+                .entries(copyOfData);
+ 
+        // an array containing the individually arrays of a given age within the bins
+        // i.e. a1 contains a set of arrays which has data where the age is between 20 and 29.
+        
+        a1Length = 0;
+        a2Length = 0;
+        a3Length = 0;
+        a4Length = 0;
+        a5Length = 0;
+        a6Length = 0;
+
+        for (j = 0; j < ageData.length; j++) {
+          if (tt.includes(Number(ageData[j].key)) == true) {
+            a1Length = a1Length + ageData[j].values.length;
+          }
+          if (tf.includes(Number(ageData[j].key)) == true) {
+            a2Length = a2Length + ageData[j].values.length;
+          }
+          if (ff.includes(Number(ageData[j].key)) == true) {
+            a3Length = a3Length + ageData[j].values.length;
+          }
+          if (fs.includes(Number(ageData[j].key)) == true) {
+            a4Length = a4Length + ageData[j].values.length;
+          }
+          if (se.includes(Number(ageData[j].key)) == true) {
+            a6Length = a6Length + ageData[j].values.length;
+          }
+          if (ss.includes(Number(ageData[j].key)) == true) {
+            a5Length = a5Length + ageData[j].values.length;
+          }
+        }
+        
+        //console.log(a1.length);
+        var ageData1 = [];
+        var ageData =  [a1Length, a2Length, a3Length, a4Length, a5Length, a6Length];
+        var agePlot = [];
+        for (i = 0; i < ageData.length; i++) {
+            agePlot[i] = [agesBand[i], ageData[i]];
+        }
+
+        // x - axis
+        svgStacked.append("g")
+          .attr("class", "xAxis")
+          .attr("transform", "translate(0," + heightScatter + ")")
+          .style("font-size", 16)
+          .call(xAxisStacked);
+
+        svgStacked.append("text")
+          .attr("class","textX")
+          .attr("id", "xLabelScatter")
+          .style("text-anchor", "middle")
+          .attr("y", heightScatter + 60)
+          .attr("x", widthScatter / 2)
+          .attr("font-size", 24)
+          .text("Age of convicted");
+
+        //y-axis
+        svgStacked.append("g")
+          .attr("class", "yAxis")
+          .style("font-size", 16)
+          .call(yAxisStacked);
+
+        // y label
+        svgStacked.append("text")
+          .attr("class","textY")
+          .attr("id", "yLabelScatter")
+          .attr("transform", "rotate(-90)")
+          .attr("font-size", 24)
+          .attr("y", -75)
+          .attr("x", 100 - height)
+          .style("text-anchor", "middle")
+          .text("Total number of convicted people");
+
+        // drawing the individual bars
+        svgStacked.selectAll(".bar")
+          .data(agePlot)
+          .enter()
+          .append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + d[1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(1000)
+          .attr("class", "bar1")
+          .attr("x", function(d) { return xStacked(d[0]); })
+          .attr("y", function(d) { return yStacked(d[1]); })
+          .attr("height", function(d) { return heightScatter - yStacked(d[1]); })
+          .attr("width", xStacked.bandwidth())
       
-      // x Axis Scatter
-      svgStacked.append("g")
-        .attr("class", "axis")
-        .attr("id", "xaxis")
-        .attr("transform", "translate(0," + heightScatter + ")")
-        .call(d3.axisBottom(xScatter)
-                .tickFormat(d3.timeFormat("%d-%b-%Y")))
-        .selectAll("text")  
-        .style("text-anchor", "center")
-        .attr("font-size", 14)
-        .attr("dx", "0em")
-        .attr("dy", "2em");
-
-      // x label
-      svgStacked.append("text")
-        .attr("class","textX")
-        .attr("id", "xLabelScatter")
-        .style("text-anchor", "middle")
-        .attr("y", heightScatter + 90)
-        .attr("x", widthScatter / 2)
-        .attr("font-size", 24)
-        .text("Date of execution");
-
-      // y Axis
-      svgStacked.append("g")
-        .attr("class", "axis")
-        .attr("id", "yaxis")
-        .call(d3.axisLeft(yScatter))
-        .selectAll("text")
-          .attr("font-size", 14);
-
-      // y label
-      svgStacked.append("text")
-        .attr("class","textY")
-        .attr("id", "yLabelScatter")
-        .attr("transform", "rotate(-90)")
-        .attr("y", -60)
-        .attr("x", 400 - heightScatter)
-        .attr("font-size", 24)
-        .style("text-anchor", "middle")
-        .text("Age of the convicted");
-
-      svgStacked.selectAll(".dot")
-        .data(copyOfData)
-        .enter()
-        .append("circle")
-        .attr("class", "dot")
-        .attr("stroke", function(d) { return pickCircleColor(d); })
-        .attr("stroke-width", 2)
-        .attr("fill", "none") // no filling due to occlusion
-        .attr("opacity", 0.5)
-        .attr("r", 4) // fixed sizes in scatterplot
-        .attr("cx", function(d) { d1 = d
-                                  if (parseTime(d.Date) == null) {
-                                    d.Date = formatTime(d1.Date);
-                                    d.Date = parseTime(d.Date)
-                                    return xScatter(d.Date);
-                                  }
-                                  else {
-                                    d.Date = parseTime(d.Date)
-                                    return xScatter(d.Date);
-                                  }})
-        .attr("cy", function(d) { return yScatter(d.Age); });
-    
       // mapping of each category for stacked barCHart
       d3.select('#xAge')
         .on("click", xAge);
@@ -567,7 +625,11 @@ function init() {
       d3.select('#xAgeRace')
         .on("click", xAgeRace);
       d3.select('#xRaceState')
-        .on("click", xRaceState);       
+        .on("click", xRaceState);
+      d3.select('#xSexAge')
+        .on("click", xSexAge);
+      d3.select('#xVictimsAge')
+        .on("click", xVictimsAge);       
   // csv load function end
   });
 
@@ -1054,18 +1116,18 @@ function init() {
         svgStacked.selectAll(".bar1").remove();
         svgStacked.selectAll(".RaceState").remove();
 
-        //yScatterCounter = 100; // barplot
-        xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.6);
-        xScatter.domain(agesBand);
+        //yStackedCounter = 100; // barplot
+        xStacked = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.6);
+        xStacked.domain(agesBand);
 
-        yScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
-        yScatter.domain([0, 600]);
+        yStacked = d3.scaleLinear().rangeRound([heightScatter, 0]);
+        yStacked.domain([0, 600]);
 
-        xAxisScatter = d3.axisBottom()
-          .scale(xScatter);
+        xAxisStacked = d3.axisBottom()
+          .scale(xStacked);
 
-        yAxisScatter = d3.axisLeft()
-          .scale(yScatter);
+        yAxisStacked = d3.axisLeft()
+          .scale(yStacked);
 
         ageData = d3.nest()
               .key(function(d) { return d.Age; })
@@ -1115,7 +1177,7 @@ function init() {
           .attr("class", "xAxis")
           .attr("transform", "translate(0," + heightScatter + ")")
           .style("font-size", 16)
-          .call(xAxisScatter);
+          .call(xAxisStacked);
 
         svgStacked.append("text")
           .attr("class","textX")
@@ -1130,7 +1192,7 @@ function init() {
         svgStacked.append("g")
           .attr("class", "yAxis")
           .style("font-size", 16)
-          .call(yAxisScatter);
+          .call(yAxisStacked);
 
         // y label
         svgStacked.append("text")
@@ -1158,10 +1220,10 @@ function init() {
           .transition()
           .duration(1000)
           .attr("class", "bar1")
-          .attr("x", function(d) { return xScatter(d[0]); })
-          .attr("y", function(d) { return yScatter(d[1]); })
-          .attr("height", function(d) { return heightScatter - yScatter(d[1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", function(d) { return xStacked(d[0]); })
+          .attr("y", function(d) { return yStacked(d[1]); })
+          .attr("height", function(d) { return heightScatter - yStacked(d[1]); })
+          .attr("width", xStacked.bandwidth())
   }
 
   function xRace() {
@@ -1194,24 +1256,24 @@ function init() {
         }
 
         // currently showing Race against ages.
-        xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
-        xScatter.domain(races);
+        xStacked = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
+        xStacked.domain(races);
 
-        yScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
-        yScatter.domain([0, 850]);
+        yStacked = d3.scaleLinear().rangeRound([heightScatter, 0]);
+        yStacked.domain([0, 850]);
 
-        xAxisScatter = d3.axisBottom()
-          .scale(xScatter);
+        xAxisStacked = d3.axisBottom()
+          .scale(xStacked);
 
-        yAxisScatter = d3.axisLeft()
-          .scale(yScatter);
+        yAxisStacked = d3.axisLeft()
+          .scale(yStacked);
 
         // x - axis
         svgStacked.append("g")
           .attr("class", "xAxis")
           .attr("transform", "translate(0," + heightScatter + ")")
           .style("font-size", 16)
-          .call(xAxisScatter);
+          .call(xAxisStacked);
 
         svgStacked.append("text")
           .attr("class","textX")
@@ -1225,7 +1287,7 @@ function init() {
         svgStacked.append("g")
           .attr("class", "yAxis")
           .style("font-size", 16)
-          .call(yAxisScatter);
+          .call(yAxisStacked);
 
         // y label
         svgStacked.append("text")
@@ -1250,12 +1312,12 @@ function init() {
                .style("top", (d3.event.pageY - 60) + "px"); })
           .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
           .transition()
-          .duration(2000)
-          .attr("class", "bar")
-          .attr("x", function(d) { return xScatter(d[0]); })
-          .attr("y", function(d) { return yScatter(d[1]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(d[1]); })
-          .attr("width", xScatter.bandwidth())
+          .duration(1000)
+          .attr("class", "bar1")
+          .attr("x", function(d) { return xStacked(d[0]); })
+          .attr("y", function(d) { return yStacked(d[1]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(d[1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
   }
 
@@ -1272,17 +1334,17 @@ function init() {
         svgStacked.selectAll(".AgeRace").remove();
         svgStacked.selectAll(".RaceState").remove();
 
-        xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
-        xScatter.domain(sexes);
+        xStacked = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
+        xStacked.domain(sexes);
 
-        yScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
-        yScatter.domain([0, 1465]);
+        yStacked = d3.scaleLinear().rangeRound([heightScatter, 0]);
+        yStacked.domain([0, 1465]);
 
-        xAxisScatter = d3.axisBottom()
-          .scale(xScatter);
+        xAxisStacked = d3.axisBottom()
+          .scale(xStacked);
 
-        yAxisScatter = d3.axisLeft()
-          .scale(yScatter);
+        yAxisStacked = d3.axisLeft()
+          .scale(yStacked);
 
         sexData = d3.nest()
               .key(function(d) { return d.Sex; })
@@ -1304,7 +1366,7 @@ function init() {
           .attr("class", "xAxis")
           .attr("transform", "translate(0," + heightScatter + ")")
           .style("font-size", 16)
-          .call(xAxisScatter);
+          .call(xAxisStacked);
 
         svgStacked.append("text")
           .attr("class","textX")
@@ -1319,7 +1381,7 @@ function init() {
         svgStacked.append("g")
           .attr("class", "yAxis")
           .style("font-size", 16)
-          .call(yAxisScatter);
+          .call(yAxisStacked);
 
                 // y label
         svgStacked.append("text")
@@ -1347,10 +1409,10 @@ function init() {
           .transition()
           .duration(1000)
           .attr("class", "bar1")
-          .attr("x", function(d) { return xScatter(d[0]); })
-          .attr("y", function(d) { return yScatter(d[1]); })
-          .attr("height", function(d) { return heightScatter - yScatter(d[1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", function(d) { return xStacked(d[0]); })
+          .attr("y", function(d) { return yStacked(d[1]); })
+          .attr("height", function(d) { return heightScatter - yStacked(d[1]); })
+          .attr("width", xStacked.bandwidth())
   }
 
   function xState() {
@@ -1367,17 +1429,17 @@ function init() {
         svgStacked.selectAll(".RaceState").remove();
 
           
-        xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
-        xScatter.domain(states);
+        xStacked = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
+        xStacked.domain(states);
 
-        yScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
-        yScatter.domain([0, 550]);
+        yStacked = d3.scaleLinear().rangeRound([heightScatter, 0]);
+        yStacked.domain([0, 550]);
         
-        xAxisScatter = d3.axisBottom()
-          .scale(xScatter);
+        xAxisStacked = d3.axisBottom()
+          .scale(xStacked);
         
-        yAxisScatter = d3.axisLeft()
-          .scale(yScatter);
+        yAxisStacked = d3.axisLeft()
+          .scale(yStacked);
 
         stateData = d3.nest()
               .key(function(d) { return d.State; })
@@ -1431,13 +1493,12 @@ function init() {
         for (i = 0; i < stateData.length; i++) {
             statePlot[i] = [statesNew[i], stateData[i]];
         }
-
         // x - axis
         svgStacked.append("g")
           .attr("class", "xAxis")
           .attr("transform", "translate(0," + heightScatter + ")")
           .style("font-size", 14)
-          .call(xAxisScatter);
+          .call(xAxisStacked);
 
         svgStacked.append("text")
           .attr("class","textX")
@@ -1452,7 +1513,7 @@ function init() {
         svgStacked.append("g")
           .attr("class", "yAxis")
           .style("font-size", 16)
-          .call(yAxisScatter);
+          .call(yAxisStacked);
 
                 // y label
         svgStacked.append("text")
@@ -1472,7 +1533,7 @@ function init() {
           .append("rect")
           .on("mouseover", function(d) {   
             labelScatter.style("opacity", 1); 
-            labelScatter.html("" + d[1] + "");
+            labelScatter.html("" + d[1].values.length + "");
             labelScatter.style("visibility", "visible")
                .style("left", (d3.event.pageX - 30) + "px")
                .style("top", (d3.event.pageY - 60) + "px"); })
@@ -1480,10 +1541,10 @@ function init() {
           .transition()
           .duration(1000)
           .attr("class", "bar1")
-          .attr("x", function(d) {return xScatter(d[0]); })
-          .attr("y", function(d) { return yScatter(d[1]); })
-          .attr("height", function(d) { return heightScatter - yScatter(d[1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", function(d) { return xStacked(d[0]); })
+          .attr("y", function(d) { return yStacked(d[1].values.length); })
+          .attr("height", function(d) { return heightScatter - yStacked(d[1].values.length); })
+          .attr("width", xStacked.bandwidth())
   }
 
   function xType() {
@@ -1499,18 +1560,18 @@ function init() {
         svgStacked.selectAll(".AgeRace").remove();
         svgStacked.selectAll(".RaceState").remove();
 
-        //yScatterCounter = 100; // barplot
-        xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
-        xScatter.domain(method);
+        //yStackedCounter = 100; // barplot
+        xStacked = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
+        xStacked.domain(method);
 
-        yScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
-        yScatter.domain([0, 1200]);
+        yStacked = d3.scaleLinear().rangeRound([heightScatter, 0]);
+        yStacked.domain([0, 1200]);
 
-        xAxisScatter = d3.axisBottom()
-          .scale(xScatter);
+        xAxisStacked = d3.axisBottom()
+          .scale(xStacked);
 
-        yAxisScatter = d3.axisLeft()
-          .scale(yScatter);
+        yAxisStacked = d3.axisLeft()
+          .scale(yStacked);
 
         typeData = d3.nest()
               .key(function(d) { return d.Method; })
@@ -1534,7 +1595,7 @@ function init() {
           .attr("class", "xAxis")
           .attr("transform", "translate(0," + heightScatter + ")")
           .style("font-size", 16)
-          .call(xAxisScatter);
+          .call(xAxisStacked);
 
         svgStacked.append("text")
           .attr("class","textX")
@@ -1548,7 +1609,7 @@ function init() {
         svgStacked.append("g")
           .attr("class", "yAxis")
           .style("font-size", 16)
-          .call(yAxisScatter);
+          .call(yAxisStacked);
 
                 // y label
         svgStacked.append("text")
@@ -1576,14 +1637,10 @@ function init() {
           .transition()
           .duration(1000)
           .attr("class", "bar1")
-          .attr("x", function(d) { return xScatter(d[0]); })
-          .attr("y", function(d) { if (yScatterCounter == 1 || 
-                                       yScatterCounter == 100) { 
-                                          return yScatter(d[1]);
-                                    }
-                                  })
-          .attr("height", function(d) { return heightScatter - yScatter(d[1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", function(d) { return xStacked(d[0]); })
+          .attr("y", function(d) { return yStacked(d[1]); })
+          .attr("height", function(d) { return heightScatter - yStacked(d[1]); })
+          .attr("width", xStacked.bandwidth())
 
           // add labels also
   }
@@ -1601,18 +1658,18 @@ function init() {
         svgStacked.selectAll(".AgeRace").remove();
         svgStacked.selectAll(".RaceState").remove();
 
-        //yScatterCounter = 100; // barplot
-        xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.6);
-        xScatter.domain(["1", "2", "3", "4", "5", "> 5"]);
+        //yStackedCounter = 100; // barplot
+        xStacked = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.6);
+        xStacked.domain(["1", "2", "3", "4", "5", "> 5"]);
 
-        yScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
-        yScatter.domain([0, 1100]);
+        yStacked = d3.scaleLinear().rangeRound([heightScatter, 0]);
+        yStacked.domain([0, 1100]);
 
-        xAxisScatter = d3.axisBottom()
-          .scale(xScatter);
+        xAxisStacked = d3.axisBottom()
+          .scale(xStacked);
 
-        yAxisScatter = d3.axisLeft()
-          .scale(yScatter);
+        yAxisStacked = d3.axisLeft()
+          .scale(yStacked);
 
         victimsData = d3.nest()
               .key(function(d) { return calculateVictims(d); })
@@ -1657,7 +1714,7 @@ function init() {
           .attr("class", "xAxis")
           .attr("transform", "translate(0," + heightScatter + ")")
           .style("font-size", 16)
-          .call(xAxisScatter);
+          .call(xAxisStacked);
 
         svgStacked.append("text")
           .attr("class","textX")
@@ -1672,7 +1729,7 @@ function init() {
         svgStacked.append("g")
           .attr("class", "yAxis")
           .style("font-size", 16)
-          .call(yAxisScatter);
+          .call(yAxisStacked);
 
                 // y label
         svgStacked.append("text")
@@ -1700,10 +1757,10 @@ function init() {
           .transition()
           .duration(1000)
           .attr("class", "bar1")
-          .attr("x", function(d) { return xScatter(d[0]); })
-          .attr("y", function(d) { return yScatter(d[1]); })
-          .attr("height", function(d) { return heightScatter - yScatter(d[1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", function(d) { return xStacked(d[0]); })
+          .attr("y", function(d) { return yStacked(d[1]); })
+          .attr("height", function(d) { return heightScatter - yStacked(d[1]); })
+          .attr("width", xStacked.bandwidth())
   } 
 
   function xAgeRace() {
@@ -1720,24 +1777,24 @@ function init() {
         svgStacked.selectAll(".bar").remove();
         svgStacked.selectAll(".bar1").remove();
 
-        xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
-        xScatter.domain(races);
+        xStacked = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
+        xStacked.domain(races);
 
-        yScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
-        yScatter.domain([0, 850]);
+        yStacked = d3.scaleLinear().rangeRound([heightScatter, 0]);
+        yStacked.domain([0, 850]);
 
-        xAxisScatter = d3.axisBottom()
-          .scale(xScatter);
+        xAxisStacked = d3.axisBottom()
+          .scale(xStacked);
 
-        yAxisScatter = d3.axisLeft()
-          .scale(yScatter);
+        yAxisStacked = d3.axisLeft()
+          .scale(yStacked);
 
         // x - axis
         svgStacked.append("g")
           .attr("class", "xAxis")
           .attr("transform", "translate(0," + heightScatter + ")")
           .style("font-size", 16)
-          .call(xAxisScatter);
+          .call(xAxisStacked);
 
         svgStacked.append("text")
           .attr("class","textX")
@@ -1751,7 +1808,7 @@ function init() {
         svgStacked.append("g")
           .attr("class", "yAxis")
           .style("font-size", 16)
-          .call(yAxisScatter);
+          .call(yAxisStacked);
 
         // y label
         svgStacked.append("text")
@@ -1769,8 +1826,10 @@ function init() {
           .attr("y",70)
           .attr("x",590)
           .attr("height", "25%")
-          .attr("width", "75%")
-          .attr("fill", "gray");
+          .attr("width", 300)
+          .attr("rx", 20)
+          .attr("ry", 20)
+          .attr("fill", "lightgray");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("y", 100)
@@ -1837,10 +1896,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[0][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[0][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[0][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[0][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -1853,10 +1912,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[0][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[0][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[0][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -1869,10 +1928,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[0][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[0][1][2] + copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[0][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[0][1][2] + copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[0][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -1885,10 +1944,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[0][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[0][1][3] + copyOfRaceAge[0][1][2] + copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[0][1][3]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[0][1][3] + copyOfRaceAge[0][1][2] + copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[0][1][3]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "steelblue");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -1901,10 +1960,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[0][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[0][1][4] + copyOfRaceAge[0][1][3] + copyOfRaceAge[0][1][2] + copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[0][1][4]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[0][1][4] + copyOfRaceAge[0][1][3] + copyOfRaceAge[0][1][2] + copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[0][1][4]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "yellow");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -1917,10 +1976,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[0][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[0][1][5] + copyOfRaceAge[0][1][4] + copyOfRaceAge[0][1][3] + copyOfRaceAge[0][1][2] + copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[0][1][5]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[0][1][5] + copyOfRaceAge[0][1][4] + copyOfRaceAge[0][1][3] + copyOfRaceAge[0][1][2] + copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[0][1][5]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "gray");
         // latino
         svgStacked.append("rect")
@@ -1934,10 +1993,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[1][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[1][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[1][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[1][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -1950,10 +2009,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[1][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[1][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[1][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -1966,10 +2025,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[1][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[1][1][2] + copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[1][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[1][1][2] + copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[1][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -1982,10 +2041,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[1][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[1][1][3] + copyOfRaceAge[1][1][2] + copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[1][1][3]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[1][1][3] + copyOfRaceAge[1][1][2] + copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[1][1][3]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "steelblue");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -1998,10 +2057,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[1][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[1][1][4] + copyOfRaceAge[1][1][3] + copyOfRaceAge[1][1][2] + copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[1][1][4]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[1][1][4] + copyOfRaceAge[1][1][3] + copyOfRaceAge[1][1][2] + copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[1][1][4]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "yellow");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2014,10 +2073,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[1][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[1][1][5] + copyOfRaceAge[1][1][4] + copyOfRaceAge[1][1][3] + copyOfRaceAge[1][1][2] + copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[1][1][5]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[1][1][5] + copyOfRaceAge[1][1][4] + copyOfRaceAge[1][1][3] + copyOfRaceAge[1][1][2] + copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[1][1][5]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "gray");
         // black
         svgStacked.append("rect")
@@ -2031,10 +2090,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[2][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[2][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[2][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[2][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2047,10 +2106,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[2][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[2][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[2][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2063,10 +2122,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[2][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[2][1][2] + copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[2][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[2][1][2] + copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[2][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2079,10 +2138,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[2][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[2][1][3] + copyOfRaceAge[2][1][2] + copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[2][1][3]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[2][1][3] + copyOfRaceAge[2][1][2] + copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[2][1][3]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "steelblue");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2095,10 +2154,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[2][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[2][1][4] + copyOfRaceAge[2][1][3] + copyOfRaceAge[2][1][2] + copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[2][1][4]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[2][1][4] + copyOfRaceAge[2][1][3] + copyOfRaceAge[2][1][2] + copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[2][1][4]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "yellow");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2111,10 +2170,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[2][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[2][1][5] + copyOfRaceAge[2][1][4] + copyOfRaceAge[2][1][3] + copyOfRaceAge[2][1][2] + copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[2][1][5]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[2][1][5] + copyOfRaceAge[2][1][4] + copyOfRaceAge[2][1][3] + copyOfRaceAge[2][1][2] + copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[2][1][5]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "gray");
         //native american
         svgStacked.append("rect")
@@ -2128,10 +2187,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[3][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[3][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[3][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[3][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2144,10 +2203,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[3][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[3][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[3][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2160,10 +2219,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[3][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[3][1][2] + copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[3][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[3][1][2] + copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[3][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2176,10 +2235,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[3][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[3][1][3] + copyOfRaceAge[3][1][2] + copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[3][1][3]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[3][1][3] + copyOfRaceAge[3][1][2] + copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[3][1][3]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "steelblue");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2192,10 +2251,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[3][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[3][1][4] + copyOfRaceAge[3][1][3] + copyOfRaceAge[3][1][2] + copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[3][1][4]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[3][1][4] + copyOfRaceAge[3][1][3] + copyOfRaceAge[3][1][2] + copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[3][1][4]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "yellow");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2208,10 +2267,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[3][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[3][1][5] + copyOfRaceAge[3][1][4] + copyOfRaceAge[3][1][3] + copyOfRaceAge[3][1][2] + copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[3][1][5]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[3][1][5] + copyOfRaceAge[3][1][4] + copyOfRaceAge[3][1][3] + copyOfRaceAge[3][1][2] + copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[3][1][5]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "gray");
         //Asian Not all ages represented
         svgStacked.append("rect")
@@ -2225,10 +2284,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[4][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[4][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[4][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[4][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[4][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2241,10 +2300,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[4][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[4][1][1] + copyOfRaceAge[4][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[4][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[4][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[4][1][1] + copyOfRaceAge[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[4][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2257,10 +2316,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[4][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[4][1][2] + copyOfRaceAge[4][1][1] + copyOfRaceAge[4][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[4][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[4][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[4][1][2] + copyOfRaceAge[4][1][1] + copyOfRaceAge[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[4][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
           // other not all ages are represented
         svgStacked.append("rect")
@@ -2274,10 +2333,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[5][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[5][1][1] + copyOfRaceAge[5][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[5][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[5][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[5][1][1] + copyOfRaceAge[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[5][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2290,10 +2349,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceAge[5][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceAge[5][1][3] + copyOfRaceAge[5][1][2] + copyOfRaceAge[5][1][1] + copyOfRaceAge[5][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[5][1][3]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceAge[5][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceAge[5][1][3] + copyOfRaceAge[5][1][2] + copyOfRaceAge[5][1][1] + copyOfRaceAge[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceAge[5][1][3]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "steelblue");        
   // end of xAgeRace   
   }
@@ -2312,27 +2371,24 @@ function init() {
         svgStacked.selectAll(".bar").remove();
         svgStacked.selectAll(".bar1").remove();
 
-        console.log(copyOfRaceState)
-        console.log(states)
+        xStacked = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
+        xStacked.domain(states);
 
-        xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
-        xScatter.domain(states);
+        yStacked = d3.scaleLinear().rangeRound([heightScatter, 0]);
+        yStacked.domain([0, 550]);
 
-        yScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
-        yScatter.domain([0, 550]);
+        xAxisStacked = d3.axisBottom()
+          .scale(xStacked);
 
-        xAxisScatter = d3.axisBottom()
-          .scale(xScatter);
-
-        yAxisScatter = d3.axisLeft()
-          .scale(yScatter);
+        yAxisStacked = d3.axisLeft()
+          .scale(yStacked);
 
         // x - axis
         svgStacked.append("g")
           .attr("class", "xAxis")
           .attr("transform", "translate(0," + heightScatter + ")")
           .style("font-size", 16)
-          .call(xAxisScatter);
+          .call(xAxisStacked);
 
         svgStacked.append("text")
           .attr("class","textX")
@@ -2346,7 +2402,7 @@ function init() {
         svgStacked.append("g")
           .attr("class", "yAxis")
           .style("font-size", 16)
-          .call(yAxisScatter);
+          .call(yAxisStacked);
 
         // y label
         svgStacked.append("text")
@@ -2363,9 +2419,11 @@ function init() {
           .attr("class", "RaceState")
           .attr("y",70)
           .attr("x",250)
-          .attr("height", "20%")
-          .attr("width", "30%")
-          .attr("fill", "gray");
+          .attr("height", "14%")
+          .attr("width", 260)
+          .attr("rx", 20)
+          .attr("ry", 20)
+          .attr("fill", "lightgray");
         svgStacked.append("text")
         .attr("class", "RaceState")
           .attr("y", 100)
@@ -2405,11 +2463,27 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[0][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[0][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[0][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[0][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[0][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfRaceState[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[0][1][1] + copyOfRaceState[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[0][1][1]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "tomato");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
             labelScatter.style("opacity", 1); 
@@ -2421,10 +2495,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[0][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[0][1][2] + copyOfRaceState[0][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[0][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[0][1][2] + copyOfRaceState[0][1][1] + copyOfRaceState[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[0][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
 
         svgStacked.append("rect")
@@ -2438,10 +2512,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[1][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[1][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[1][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[1][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -2455,10 +2529,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[1][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[1][1][1] + copyOfRaceState[1][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[1][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[1][1][1] + copyOfRaceState[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[1][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -2472,10 +2546,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[1][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[1][1][2] + copyOfRaceState[1][1][1] + copyOfRaceState[1][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[1][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[1][1][2] + copyOfRaceState[1][1][1] + copyOfRaceState[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[1][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
 
           svgStacked.append("rect")
@@ -2489,10 +2563,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[2][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[2][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[2][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[2][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -2506,10 +2580,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[2][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[2][1][1] + copyOfRaceState[2][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[2][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[2][1][1] + copyOfRaceState[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[2][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -2523,10 +2597,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[2][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[2][1][2] + copyOfRaceState[2][1][1] + copyOfRaceState[2][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[2][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[2][1][2] + copyOfRaceState[2][1][1] + copyOfRaceState[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[2][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
 
         svgStacked.append("rect")
@@ -2540,10 +2614,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[3][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[3][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[3][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -2557,10 +2631,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[3][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][1] + copyOfRaceState[3][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[3][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[3][1][1] + copyOfRaceState[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[3][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -2574,10 +2648,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[3][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][2] + copyOfRaceState[3][1][1] + copyOfRaceState[3][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[3][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[3][1][2] + copyOfRaceState[3][1][1] + copyOfRaceState[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[3][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         
           // start here
@@ -2592,10 +2666,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[4][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[4][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[4][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[4][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[4][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -2609,10 +2683,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[4][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[4][1][1] + copyOfRaceState[4][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[4][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[4][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[4][1][1] + copyOfRaceState[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[4][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -2626,10 +2700,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[4][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[4][1][2] + copyOfRaceState[4][1][1] + copyOfRaceState[4][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[4][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[4][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[4][1][2] + copyOfRaceState[4][1][1] + copyOfRaceState[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[4][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
 
         svgStacked.append("rect")
@@ -2643,10 +2717,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[5][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[5][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[5][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[5][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[5][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -2660,10 +2734,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[5][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[5][1][1] + copyOfRaceState[5][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[5][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[5][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[5][1][1] + copyOfRaceState[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[5][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -2677,10 +2751,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[5][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[5][1][2] + copyOfRaceState[5][1][1] + copyOfRaceState[5][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[5][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[5][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[5][1][2] + copyOfRaceState[5][1][1] + copyOfRaceState[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[5][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2693,10 +2767,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[6][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[6][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[6][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[6][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[6][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[6][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -2710,10 +2784,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[6][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[6][1][1] + copyOfRaceState[6][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[6][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[6][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[6][1][1] + copyOfRaceState[6][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[6][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -2727,10 +2801,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[6][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[6][1][2] + copyOfRaceState[6][1][1] + copyOfRaceState[6][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[6][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[6][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[6][1][2] + copyOfRaceState[6][1][1] + copyOfRaceState[6][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[6][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2743,10 +2817,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[7][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[7][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[7][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[7][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[7][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[7][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -2760,10 +2834,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[7][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[7][1][1] + copyOfRaceState[7][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[7][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[7][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[7][1][1] + copyOfRaceState[7][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[7][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -2777,10 +2851,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[7][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[7][1][2] + copyOfRaceState[7][1][1] + copyOfRaceState[7][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[7][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[7][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[7][1][2] + copyOfRaceState[7][1][1] + copyOfRaceState[7][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[7][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2793,10 +2867,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[8][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[8][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[8][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[8][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[8][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[8][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -2810,10 +2884,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[8][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[8][1][1] + copyOfRaceState[8][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[8][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[8][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[8][1][1] + copyOfRaceState[8][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[8][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -2827,10 +2901,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[8][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[8][1][2] + copyOfRaceState[8][1][1] + copyOfRaceState[8][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[8][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[8][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[8][1][2] + copyOfRaceState[8][1][1] + copyOfRaceState[8][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[8][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2843,10 +2917,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[9][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[9][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[9][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[9][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[9][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[9][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -2860,10 +2934,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[9][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[9][1][1] + copyOfRaceState[9][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[9][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[9][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[9][1][1] + copyOfRaceState[9][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[9][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -2877,10 +2951,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[9][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[9][1][2] + copyOfRaceState[9][1][1] + copyOfRaceState[9][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[9][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[9][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[9][1][2] + copyOfRaceState[9][1][1] + copyOfRaceState[9][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[9][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2893,10 +2967,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[10][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[10][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[10][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[10][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[10][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[10][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -2910,10 +2984,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[10][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[10][1][1] + copyOfRaceState[10][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[10][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[10][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[10][1][1] + copyOfRaceState[10][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[10][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -2927,10 +3001,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[10][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[10][1][2] + copyOfRaceState[10][1][1] + copyOfRaceState[10][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[10][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[10][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[10][1][2] + copyOfRaceState[10][1][1] + copyOfRaceState[10][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[10][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2943,10 +3017,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[11][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[11][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[11][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[11][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[11][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[11][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -2960,10 +3034,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[11][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[11][1][1] + copyOfRaceState[11][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[11][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[11][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[11][1][1] + copyOfRaceState[11][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[11][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -2977,10 +3051,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[11][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[11][1][2] + copyOfRaceState[11][1][1] + copyOfRaceState[11][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[11][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[11][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[11][1][2] + copyOfRaceState[11][1][1] + copyOfRaceState[11][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[11][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -2993,10 +3067,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[12][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[12][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[12][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[12][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[12][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[12][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3010,10 +3084,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[12][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[12][1][1] + copyOfRaceState[12][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[12][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[12][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[12][1][1] + copyOfRaceState[12][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[12][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3027,10 +3101,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[12][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[12][1][2] + copyOfRaceState[12][1][1] + copyOfRaceState[12][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[12][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[12][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[12][1][2] + copyOfRaceState[12][1][1] + copyOfRaceState[12][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[12][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3043,10 +3117,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[13][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[13][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[13][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[13][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[13][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[13][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3060,10 +3134,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[13][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[13][1][1] + copyOfRaceState[13][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[13][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[13][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[13][1][1] + copyOfRaceState[13][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[13][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3077,10 +3151,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[13][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[13][1][2] + copyOfRaceState[13][1][1] + copyOfRaceState[13][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[13][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[13][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[13][1][2] + copyOfRaceState[13][1][1] + copyOfRaceState[13][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[13][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3093,10 +3167,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[14][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[14][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[14][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[14][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[14][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[14][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3110,10 +3184,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[14][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[14][1][1] + copyOfRaceState[14][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[14][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[14][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[14][1][1] + copyOfRaceState[14][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[14][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3127,10 +3201,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[14][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[14][1][2] + copyOfRaceState[14][1][1] + copyOfRaceState[14][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[14][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[14][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[14][1][2] + copyOfRaceState[14][1][1] + copyOfRaceState[14][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[14][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3143,10 +3217,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[15][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[15][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[15][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[15][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[15][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[15][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3160,10 +3234,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[15][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[15][1][1] + copyOfRaceState[15][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[15][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[15][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[15][1][1] + copyOfRaceState[15][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[15][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3177,10 +3251,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[15][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[15][1][2] + copyOfRaceState[15][1][1] + copyOfRaceState[15][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[15][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[15][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[15][1][2] + copyOfRaceState[15][1][1] + copyOfRaceState[15][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[15][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3193,10 +3267,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[16][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[16][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[16][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[16][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[16][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[16][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3210,10 +3284,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[16][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[16][1][1] + copyOfRaceState[16][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[16][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[16][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[16][1][1] + copyOfRaceState[16][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[16][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3227,10 +3301,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[16][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[16][1][2] + copyOfRaceState[16][1][1] + copyOfRaceState[16][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[16][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[16][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[16][1][2] + copyOfRaceState[16][1][1] + copyOfRaceState[16][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[16][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3243,10 +3317,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[17][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[17][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[17][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[17][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[17][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[17][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3260,10 +3334,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[17][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[17][1][1] + copyOfRaceState[17][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[17][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[17][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[17][1][1] + copyOfRaceState[17][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[17][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3277,10 +3351,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[17][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[17][1][2] + copyOfRaceState[17][1][1] + copyOfRaceState[17][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[17][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[17][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[17][1][2] + copyOfRaceState[17][1][1] + copyOfRaceState[17][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[17][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3293,10 +3367,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[18][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[18][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[18][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[18][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[18][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[18][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3310,10 +3384,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[18][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[18][1][1] + copyOfRaceState[18][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[18][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[18][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[18][1][1] + copyOfRaceState[18][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[18][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3327,10 +3401,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[18][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[18][1][2] + copyOfRaceState[18][1][1] + copyOfRaceState[18][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[18][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[18][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[18][1][2] + copyOfRaceState[18][1][1] + copyOfRaceState[18][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[18][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3343,10 +3417,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[19][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[19][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[19][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[19][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[19][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[19][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3360,10 +3434,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[19][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[19][1][1] + copyOfRaceState[19][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[19][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[19][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[19][1][1] + copyOfRaceState[19][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[19][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3377,10 +3451,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[19][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[19][1][2] + copyOfRaceState[19][1][1] + copyOfRaceState[19][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[19][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[19][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[19][1][2] + copyOfRaceState[19][1][1] + copyOfRaceState[19][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[19][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3393,10 +3467,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[20][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[20][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[20][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[20][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[20][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[20][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3410,10 +3484,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[20][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[20][1][1] + copyOfRaceState[20][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[20][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[20][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[20][1][1] + copyOfRaceState[20][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[20][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3427,10 +3501,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[20][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[20][1][2] + copyOfRaceState[20][1][1] + copyOfRaceState[20][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[20][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[20][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[20][1][2] + copyOfRaceState[20][1][1] + copyOfRaceState[20][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[20][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3443,10 +3517,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[21][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[21][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[21][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[21][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[21][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[21][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3460,10 +3534,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[21][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[21][1][1] + copyOfRaceState[21][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[21][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[21][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[21][1][1] + copyOfRaceState[21][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[21][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3477,10 +3551,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[21][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[21][1][2] + copyOfRaceState[21][1][1] + copyOfRaceState[21][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[21][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[21][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[21][1][2] + copyOfRaceState[21][1][1] + copyOfRaceState[21][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[21][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3493,10 +3567,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[22][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[22][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[22][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[22][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[22][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[22][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3510,10 +3584,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[22][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[22][1][1] + copyOfRaceState[22][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[22][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[22][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[22][1][1] + copyOfRaceState[22][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[22][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3527,10 +3601,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[22][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][2] + copyOfRaceState[22][1][1] + copyOfRaceState[22][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[22][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[22][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[3][1][2] + copyOfRaceState[22][1][1] + copyOfRaceState[22][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[22][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3543,10 +3617,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[23][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[23][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[23][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[23][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[23][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[23][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3560,10 +3634,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[23][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[23][1][1] + copyOfRaceState[23][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[23][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[23][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[23][1][1] + copyOfRaceState[23][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[23][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3577,10 +3651,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[23][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[23][1][2] + copyOfRaceState[23][1][1] + copyOfRaceState[23][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[23][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[23][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[23][1][2] + copyOfRaceState[23][1][1] + copyOfRaceState[23][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[23][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3593,10 +3667,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[24][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[24][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[24][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[24][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[24][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[24][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3610,10 +3684,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[24][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[24][1][1] + copyOfRaceState[24][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[24][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[24][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[24][1][1] + copyOfRaceState[24][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[24][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3627,10 +3701,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[24][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][2] + copyOfRaceState[24][1][1] + copyOfRaceState[24][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[24][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[24][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[3][1][2] + copyOfRaceState[24][1][1] + copyOfRaceState[24][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[24][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3643,10 +3717,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[24][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[24][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[24][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[24][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[24][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[24][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3660,10 +3734,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[24][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[24][1][1] + copyOfRaceState[24][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[24][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[24][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[24][1][1] + copyOfRaceState[24][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[24][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3677,10 +3751,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[24][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[24][1][2] + copyOfRaceState[24][1][1] + copyOfRaceState[24][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[24][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[24][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[24][1][2] + copyOfRaceState[24][1][1] + copyOfRaceState[24][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[24][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3693,10 +3767,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[25][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[25][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[25][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[25][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[25][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[25][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3710,10 +3784,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[25][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[25][1][1] + copyOfRaceState[25][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[25][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[25][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[25][1][1] + copyOfRaceState[25][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[25][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3727,10 +3801,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[25][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[25][1][2] + copyOfRaceState[25][1][1] + copyOfRaceState[25][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[25][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[25][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[25][1][2] + copyOfRaceState[25][1][1] + copyOfRaceState[25][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[25][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3743,10 +3817,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[26][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[26][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[26][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[26][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[26][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[26][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3760,10 +3834,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[26][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[26][1][1] + copyOfRaceState[26][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[26][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[26][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[26][1][1] + copyOfRaceState[26][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[26][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3777,10 +3851,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[26][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[26][1][2] + copyOfRaceState[26][1][1] + copyOfRaceState[26][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[26][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[26][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[26][1][2] + copyOfRaceState[26][1][1] + copyOfRaceState[26][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[26][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3793,10 +3867,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[27][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[27][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[27][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[27][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[27][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[27][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3810,10 +3884,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[27][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[27][1][1] + copyOfRaceState[27][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[27][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[27][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[27][1][1] + copyOfRaceState[27][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[27][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3827,10 +3901,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[27][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][2] + copyOfRaceState[27][1][1] + copyOfRaceState[27][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[27][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[27][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[27][1][2] + copyOfRaceState[27][1][1] + copyOfRaceState[27][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[27][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3843,10 +3917,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[28][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[28][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[28][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[28][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[28][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[28][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3860,10 +3934,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[28][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[28][1][1] + copyOfRaceState[28][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[28][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[28][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[28][1][1] + copyOfRaceState[28][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[28][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3877,10 +3951,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[28][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[28][1][2] + copyOfRaceState[28][1][1] + copyOfRaceState[28][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[28][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[28][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[28][1][2] + copyOfRaceState[28][1][1] + copyOfRaceState[28][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[28][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3893,10 +3967,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[29][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[29][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[29][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[29][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[29][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[29][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3910,10 +3984,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[29][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[29][1][1] + copyOfRaceState[29][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[29][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[29][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[29][1][1] + copyOfRaceState[29][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[29][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3927,10 +4001,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[29][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[29][1][2] + copyOfRaceState[29][1][1] + copyOfRaceState[29][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[29][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[29][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[29][1][2] + copyOfRaceState[29][1][1] + copyOfRaceState[29][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[29][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3943,10 +4017,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[30][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[30][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[30][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[30][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[30][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[30][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -3960,10 +4034,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[30][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[30][1][1] + copyOfRaceState[30][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[30][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[30][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[30][1][1] + copyOfRaceState[30][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[30][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -3977,10 +4051,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[30][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[30][1][2] + copyOfRaceState[30][1][1] + copyOfRaceState[30][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[30][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[30][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[30][1][2] + copyOfRaceState[30][1][1] + copyOfRaceState[30][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[30][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -3993,10 +4067,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[31][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[31][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[31][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[31][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[31][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[31][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -4010,10 +4084,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[3][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[31][1][1] + copyOfRaceState[31][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[31][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[31][1][1] + copyOfRaceState[31][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[31][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -4027,10 +4101,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[31][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][2] + copyOfRaceState[31][1][1] + copyOfRaceState[31][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[31][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[31][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[3][1][2] + copyOfRaceState[31][1][1] + copyOfRaceState[31][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[31][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -4043,10 +4117,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[32][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[32][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[32][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[32][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[32][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[32][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -4060,10 +4134,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[32][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[32][1][1] + copyOfRaceState[32][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[32][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[32][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[32][1][1] + copyOfRaceState[32][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[32][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -4077,10 +4151,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[32][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][2] + copyOfRaceState[32][1][1] + copyOfRaceState[32][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[32][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[32][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[32][1][2] + copyOfRaceState[32][1][1] + copyOfRaceState[32][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[32][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -4093,10 +4167,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[33][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[33][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[33][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[33][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[33][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[33][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -4110,10 +4184,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[33][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[33][1][1] + copyOfRaceState[33][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[33][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[33][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[33][1][1] + copyOfRaceState[33][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[33][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -4127,10 +4201,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[33][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][2] + copyOfRaceState[33][1][1] + copyOfRaceState[33][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[33][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[33][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[3][1][2] + copyOfRaceState[33][1][1] + copyOfRaceState[33][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[33][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
         svgStacked.append("rect")
           .on("mouseover", function(d) {   
@@ -4143,10 +4217,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[34][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[34][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[34][1][0]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[34][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[34][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[34][1][0]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "blue");
 
         svgStacked.append("rect")
@@ -4160,10 +4234,10 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[34][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[34][1][1] + copyOfRaceState[34][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[34][1][1]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[34][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[34][1][1] + copyOfRaceState[34][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[34][1][1]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "tomato");
 
         svgStacked.append("rect")
@@ -4177,14 +4251,1040 @@ function init() {
           .transition()
           .duration(2000)
           .attr("class", "bar")
-          .attr("x", xScatter(copyOfRaceState[34][0]))
-          .attr("y", function(d) { return yScatter(copyOfRaceState[34][1][2] + copyOfRaceState[34][1][1] + copyOfRaceState[34][1][0]); } )
-          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[34][1][2]); })
-          .attr("width", xScatter.bandwidth())
+          .attr("x", xStacked(copyOfRaceState[34][0]))
+          .attr("y", function(d) { return yStacked(copyOfRaceState[34][1][2] + copyOfRaceState[34][1][1] + copyOfRaceState[34][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfRaceState[34][1][2]); })
+          .attr("width", xStacked.bandwidth())
           .attr("fill", "green");
   // end of xRaceState  
   }
  
+  function xSexAge() {
+    svgStacked.selectAll("#xaxis").remove();
+    svgStacked.selectAll("#yaxis").remove();
+    svgStacked.selectAll("#xLabelScatter").remove();
+    svgStacked.selectAll("#yLabelScatter").remove();
+    svgStacked.selectAll(".xAxis").remove();
+    svgStacked.selectAll(".yAxis").remove();
+    svgStacked.selectAll("circle").remove();
+    svgStacked.selectAll(".bar").remove();
+    svgStacked.selectAll(".bar1").remove();
+    svgStacked.selectAll(".AgeRace").remove();
+    svgStacked.selectAll(".RaceState").remove();
+    makeData();
+
+    xStacked = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
+        xStacked.domain(sexes);
+
+        yStacked = d3.scaleLinear().rangeRound([heightScatter, 0]);
+        yStacked.domain([0, 1500]);
+
+        xAxisStacked = d3.axisBottom()
+          .scale(xStacked);
+
+        yAxisStacked = d3.axisLeft()
+          .scale(yStacked);
+
+        // x - axis
+        svgStacked.append("g")
+          .attr("class", "xAxis")
+          .attr("transform", "translate(0," + heightScatter + ")")
+          .style("font-size", 16)
+          .call(xAxisStacked);
+
+        svgStacked.append("text")
+          .attr("class","textX")
+          .attr("id", "xLabelScatter")
+          .style("text-anchor", "middle")
+          .attr("y", heightScatter + 60)
+          .attr("x", widthScatter / 2)
+          .attr("font-size", 24)
+          .text("Sex of convicted");
+        //y-axis
+        svgStacked.append("g")
+          .attr("class", "yAxis")
+          .style("font-size", 16)
+          .call(yAxisStacked);
+
+        // y label
+        svgStacked.append("text")
+          .attr("class","textY")
+          .attr("id", "yLabelScatter")
+          .attr("transform", "rotate(-90)")
+          .attr("font-size", 24)
+          .attr("y", -75)
+          .attr("x", 100 - height)
+          .style("text-anchor", "middle")
+          .text("Total number of convicted people");
+
+        svgStacked.append("rect")
+          .attr("class", "AgeRace")
+          .attr("y",70)
+          .attr("x",590)
+          .attr("height", "25%")
+          .attr("width", 300)
+          .attr("rx", 20)
+          .attr("ry", 20)
+          .attr("fill", "lightgray");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 100)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .attr("x", 600)
+          .style("fill", "blue")
+          .text("Blue - ages 20 - 29");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .attr("y", 130)
+          .attr("x", 600)
+          .style("fill", "tomato")
+          .text("Red - ages 30 - 39");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 160)
+          .attr("x", 600)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .style("fill", "green")
+          .text("Green - ages 40 - 49");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 190)
+          .attr("x", 600)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .style("fill", "Steelblue")
+          .text("Lightblue - ages 50 - 59");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 220)
+          .attr("x", 600)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .style("fill", "yellow")
+          .text("Yellow - ages 60 - 69");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 250)
+          .attr("x", 600)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .style("fill", "black")
+          .text("Gray - ages  > 70");
+
+        svgStacked.selectAll(".bar")
+          .data(copyOfSexAge)
+          .enter()
+          .append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfSexAge[0][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfSexAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfSexAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfSexAge[0][1][0]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfSexAge[0][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfSexAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfSexAge[0][1][1] + copyOfSexAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfSexAge[0][1][1]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "tomato");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfSexAge[0][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfSexAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfSexAge[0][1][2] + copyOfSexAge[0][1][1] + copyOfSexAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfSexAge[0][1][2]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfSexAge[0][1][3] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfSexAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfSexAge[0][1][3] + copyOfSexAge[0][1][2] + copyOfSexAge[0][1][1] + copyOfSexAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfSexAge[0][1][3]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "steelblue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfSexAge[0][1][4] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfSexAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfSexAge[0][1][4] + copyOfSexAge[0][1][3] + copyOfSexAge[0][1][2] + copyOfSexAge[0][1][1] + copyOfSexAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfSexAge[0][1][4]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "yellow");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfSexAge[0][1][5] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfSexAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfSexAge[0][1][5] + copyOfSexAge[0][1][4] + copyOfSexAge[0][1][3] + copyOfSexAge[0][1][2] + copyOfSexAge[0][1][1] + copyOfSexAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfSexAge[0][1][5]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "gray");
+
+        // females
+        svgStacked.append("rect")
+          .append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfSexAge[1][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfSexAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfSexAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfSexAge[1][1][0]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfSexAge[1][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfSexAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfSexAge[1][1][1] + copyOfSexAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfSexAge[1][1][1]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "tomato");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfSexAge[1][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfSexAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfSexAge[1][1][2] + copyOfSexAge[1][1][1] + copyOfSexAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfSexAge[1][1][2]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfSexAge[1][1][3] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfSexAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfSexAge[1][1][3] + copyOfSexAge[1][1][2] + copyOfSexAge[1][1][1] + copyOfSexAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfSexAge[1][1][3]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "steelblue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfSexAge[1][1][4] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfSexAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfSexAge[1][1][4] + copyOfSexAge[1][1][3] + copyOfSexAge[1][1][2] + copyOfSexAge[1][1][1] + copyOfSexAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfSexAge[1][1][4]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "yellow");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfSexAge[1][1][5] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfSexAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfSexAge[1][1][5] + copyOfSexAge[1][1][4] + copyOfSexAge[1][1][3] + copyOfSexAge[1][1][2] + copyOfSexAge[1][1][1] + copyOfSexAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfSexAge[1][1][5]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "gray");
+  // end of xSexAge
+  } 
+
+  function xVictimsAge() {
+    svgStacked.selectAll("#xaxis").remove();
+    svgStacked.selectAll("#yaxis").remove();
+    svgStacked.selectAll("#xLabelScatter").remove();
+    svgStacked.selectAll("#yLabelScatter").remove();
+    svgStacked.selectAll(".xAxis").remove();
+    svgStacked.selectAll(".yAxis").remove();
+    svgStacked.selectAll("circle").remove();
+    svgStacked.selectAll(".bar").remove();
+    svgStacked.selectAll(".bar1").remove();
+    svgStacked.selectAll(".AgeRace").remove();
+    svgStacked.selectAll(".RaceState").remove();
+    makeData();
+
+    xStacked = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.6);
+    xStacked.domain(["1", "2", "3", "4", "5", "> 5"]);
+
+    yStacked = d3.scaleLinear().rangeRound([heightScatter, 0]);
+    yStacked.domain([0, 1100]);
+
+    xAxisStacked = d3.axisBottom()
+      .scale(xStacked);
+
+    yAxisStacked = d3.axisLeft()
+      .scale(yStacked);
+
+        // x - axis
+        svgStacked.append("g")
+          .attr("class", "xAxis")
+          .attr("transform", "translate(0," + heightScatter + ")")
+          .style("font-size", 16)
+          .call(xAxisStacked);
+
+        svgStacked.append("text")
+          .attr("class","textX")
+          .attr("id", "xLabelScatter")
+          .style("text-anchor", "middle")
+          .attr("y", heightScatter + 60)
+          .attr("x", widthScatter / 2)
+          .attr("font-size", 24)
+          .text("Number of Victims");
+        //y-axis
+        svgStacked.append("g")
+          .attr("class", "yAxis")
+          .style("font-size", 16)
+          .call(yAxisStacked);
+
+        // y label
+        svgStacked.append("text")
+          .attr("class","textY")
+          .attr("id", "yLabelScatter")
+          .attr("transform", "rotate(-90)")
+          .attr("font-size", 24)
+          .attr("y", -75)
+          .attr("x", 100 - height)
+          .style("text-anchor", "middle")
+          .text("Total number of convicted people");
+
+        svgStacked.append("rect")
+          .attr("class", "AgeRace")
+          .attr("y",70)
+          .attr("x",590)
+          .attr("height", "25%")
+          .attr("width", 300)
+          .attr("rx", 20)
+          .attr("ry", 20)
+          .attr("fill", "lightgray");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 100)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .attr("x", 600)
+          .style("fill", "blue")
+          .text("Blue - ages 20 - 29");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .attr("y", 130)
+          .attr("x", 600)
+          .style("fill", "tomato")
+          .text("Red - ages 30 - 39");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 160)
+          .attr("x", 600)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .style("fill", "green")
+          .text("Green - ages 40 - 49");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 190)
+          .attr("x", 600)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .style("fill", "Steelblue")
+          .text("Lightblue - ages 50 - 59");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 220)
+          .attr("x", 600)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .style("fill", "yellow")
+          .text("Yellow - ages 60 - 69");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 250)
+          .attr("x", 600)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .style("fill", "black")
+          .text("Gray - ages  > 70");
+
+        console.log(copyOfVictimsAge)
+        svgStacked.selectAll(".bar")
+          .data(copyOfVictimsAge)
+          .enter()
+          .append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[0][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[0][1][0]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[0][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[0][1][1] + copyOfVictimsAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[0][1][1]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "tomato");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[0][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[0][1][2] + copyOfVictimsAge[0][1][1] + copyOfVictimsAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[0][1][2]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[0][1][3] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[0][1][3] + copyOfVictimsAge[0][1][2] + copyOfVictimsAge[0][1][1] + copyOfVictimsAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[0][1][3]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "steelblue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[0][1][4] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[0][1][4] + copyOfVictimsAge[0][1][3] + copyOfVictimsAge[0][1][2] + copyOfVictimsAge[0][1][1] + copyOfVictimsAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[0][1][4]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "yellow");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[0][1][5] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[0][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[0][1][5] + copyOfVictimsAge[0][1][4] + copyOfVictimsAge[0][1][3] + copyOfVictimsAge[0][1][2] + copyOfVictimsAge[0][1][1] + copyOfVictimsAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[0][1][5]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "gray");
+          // here
+          svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[1][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[1][1][0]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[1][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[1][1][1] + copyOfVictimsAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[1][1][1]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "tomato");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[1][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[1][1][2] + copyOfVictimsAge[1][1][1] + copyOfVictimsAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[1][1][2]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[1][1][3] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[1][1][3] + copyOfVictimsAge[1][1][2] + copyOfVictimsAge[1][1][1] + copyOfVictimsAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[1][1][3]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "steelblue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[1][1][4] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[1][1][4] + copyOfVictimsAge[1][1][3] + copyOfVictimsAge[1][1][2] + copyOfVictimsAge[1][1][1] + copyOfVictimsAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[1][1][4]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "yellow");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[1][1][5] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[1][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[1][1][5] + copyOfVictimsAge[1][1][4] + copyOfVictimsAge[1][1][3] + copyOfVictimsAge[1][1][2] + copyOfVictimsAge[1][1][1] + copyOfVictimsAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[1][1][5]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "gray");
+
+          // v3
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[2][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[2][1][0]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[2][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[2][1][1] + copyOfVictimsAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[2][1][1]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "tomato");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[2][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[2][1][2] + copyOfVictimsAge[2][1][1] + copyOfVictimsAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[2][1][2]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[2][1][3] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[2][1][3] + copyOfVictimsAge[2][1][2] + copyOfVictimsAge[2][1][1] + copyOfVictimsAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[2][1][3]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "steelblue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[2][1][4] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[2][1][4] + copyOfVictimsAge[2][1][3] + copyOfVictimsAge[2][1][2] + copyOfVictimsAge[2][1][1] + copyOfVictimsAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[2][1][4]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "yellow");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[2][1][5] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[2][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[2][1][5] + copyOfVictimsAge[2][1][4] + copyOfVictimsAge[2][1][3] + copyOfVictimsAge[2][1][2] + copyOfVictimsAge[2][1][1] + copyOfVictimsAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[2][1][5]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "gray");
+
+          // v4
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[3][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[3][1][0]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[3][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[3][1][1] + copyOfVictimsAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[3][1][1]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "tomato");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[3][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[3][1][2] + copyOfVictimsAge[3][1][1] + copyOfVictimsAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[3][1][2]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[3][1][3] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[3][1][3] + copyOfVictimsAge[3][1][2] + copyOfVictimsAge[3][1][1] + copyOfVictimsAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[3][1][3]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "steelblue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[3][1][4] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[3][1][4] + copyOfVictimsAge[3][1][3] + copyOfVictimsAge[3][1][2] + copyOfVictimsAge[3][1][1] + copyOfVictimsAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[3][1][4]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "yellow");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[3][1][5] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[3][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[3][1][5] + copyOfVictimsAge[3][1][4] + copyOfVictimsAge[3][1][3] + copyOfVictimsAge[3][1][2] + copyOfVictimsAge[3][1][1] + copyOfVictimsAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[3][1][5]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "gray");
+
+          // v5
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[4][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[4][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[4][1][0]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[4][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[4][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[4][1][1] + copyOfVictimsAge[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[4][1][1]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "tomato");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[4][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[4][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[4][1][2] + copyOfVictimsAge[4][1][1] + copyOfVictimsAge[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[4][1][2]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[4][1][3] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[4][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[4][1][3] + copyOfVictimsAge[4][1][2] + copyOfVictimsAge[4][1][1] + copyOfVictimsAge[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[4][1][3]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "steelblue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[4][1][4] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[4][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[4][1][4] + copyOfVictimsAge[4][1][3] + copyOfVictimsAge[4][1][2] + copyOfVictimsAge[4][1][1] + copyOfVictimsAge[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[4][1][4]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "yellow");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[4][1][5] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[4][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[4][1][5] + copyOfVictimsAge[4][1][4] + copyOfVictimsAge[4][1][3] + copyOfVictimsAge[4][1][2] + copyOfVictimsAge[4][1][1] + copyOfVictimsAge[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[4][1][5]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "gray");
+
+          //v6
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[5][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[5][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[5][1][0]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[5][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[5][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[5][1][1] + copyOfVictimsAge[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[5][1][1]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "tomato");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[5][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[5][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[5][1][2] + copyOfVictimsAge[5][1][1] + copyOfVictimsAge[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[5][1][2]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[5][1][3] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[5][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[5][1][3] + copyOfVictimsAge[5][1][2] + copyOfVictimsAge[5][1][1] + copyOfVictimsAge[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[5][1][3]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "steelblue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[5][1][4] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[5][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[5][1][4] + copyOfVictimsAge[5][1][3] + copyOfVictimsAge[5][1][2] + copyOfVictimsAge[5][1][1] + copyOfVictimsAge[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[5][1][4]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "yellow");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfVictimsAge[0][1][5] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xStacked(copyOfVictimsAge[5][0]))
+          .attr("y", function(d) { return yStacked(copyOfVictimsAge[5][1][5] + copyOfVictimsAge[5][1][4] + copyOfVictimsAge[5][1][3] + copyOfVictimsAge[5][1][2] + copyOfVictimsAge[5][1][1] + copyOfVictimsAge[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yStacked(copyOfVictimsAge[5][1][5]); })
+          .attr("width", xStacked.bandwidth())
+          .attr("fill", "gray");
+
+  // end of xVictimsAge
+  }
+
   function calculateVictims(data) {
     var aString = data["Number / Race / Sex of Victims"];
     var sumVictims = aString.match(/\d+/g).map(Number).reduce((a, b) => a + b, 0);
@@ -4196,17 +5296,27 @@ function init() {
 
         resetVariables()
         var raceData = d3.nest()
-        .key(function(d) { return d.Race; })
-        .entries(copyOfData);
+          .key(function(d) { return d.Race; })
+          .entries(copyOfData);
 
         var stateData = d3.nest()
-        .key(function(d) { return d.State; })
-        .entries(copyOfData);        
+          .key(function(d) { return d.State; })
+          .entries(copyOfData); 
+
+        var sexAgeData = d3.nest()
+          .key(function(d) { return d.Sex; })
+          .entries(copyOfData);
+
+        victimsAgeData = d3.nest()
+          .key(function(d) { return calculateVictims(d); })
+          .entries(copyOfData);
+
+        console.log(victimsAgeData);
 
         for (j = 0; j < raceData.length; j++) {  
           for (i = 0; i < raceData[j].values.length; i++) {
               if (j == 0) {
-                // White race Age
+                // Race Age
                 if (tt.includes(Number(raceData[0].values[i].Age))) {
                   white2030.push(raceData[0].values[i]);
                 }
@@ -4330,7 +5440,6 @@ function init() {
         }
 
         // state Race
-        console.log(stateData)
         for (j = 0; j < stateData.length; j++) {  
           for (i = 0; i < stateData[j].values.length; i++) {
             if (j == 0) {
@@ -4721,6 +5830,197 @@ function init() {
           }
         }
 
+        for (j = 0; j < sexAgeData.length; j++) {  
+          for (i = 0; i < sexAgeData[j].values.length; i++) {
+              if (j == 0) {
+                // Sex Age
+                if (tt.includes(Number(sexAgeData[0].values[i].Age))) {
+                  m2030.push(sexAgeData[0].values[i]);
+                }
+                if (tf.includes(Number(sexAgeData[0].values[i].Age))) {
+                  m3040.push(sexAgeData[0].values[i]);
+                }
+                if (ff.includes(Number(sexAgeData[0].values[i].Age))) {
+                  m4050.push(sexAgeData[0].values[i]);
+                }
+                if (fs.includes(Number(sexAgeData[0].values[i].Age))) {
+                  m5060.push(sexAgeData[0].values[i]);
+                }
+                if (ss.includes(Number(sexAgeData[0].values[i].Age))) {
+                  m6070.push(sexAgeData[0].values[i]); 
+                }
+                if (se.includes(Number(sexAgeData[0].values[i].Age))) {
+                  m7080.push(sexAgeData[0].values[i]); 
+                }
+              }
+              if (j == 1) {
+                // Sex Age
+                if (tt.includes(Number(sexAgeData[1].values[i].Age))) {
+                  f2030.push(sexAgeData[1].values[i]);
+                }
+                if (tf.includes(Number(sexAgeData[1].values[i].Age))) {
+                  f3040.push(sexAgeData[1].values[i]);
+                }
+                if (ff.includes(Number(sexAgeData[1].values[i].Age))) {
+                  f4050.push(sexAgeData[1].values[i]);
+                }
+                if (fs.includes(Number(sexAgeData[1].values[i].Age))) {
+                  f5060.push(sexAgeData[1].values[i]);
+                }
+                if (ss.includes(Number(sexAgeData[1].values[i].Age))) {
+                  f6070.push(sexAgeData[1].values[i]); 
+                }
+                if (se.includes(Number(sexAgeData[1].values[i].Age))) {
+                  f7080.push(sexAgeData[1].values[i]); 
+                }
+              }
+            }
+          }
+          for (j = 0; j < victimsAgeData.length; j++) {  
+            for (i = 0; i < victimsAgeData[j].values.length; i++) {
+              
+              if (victimsAgeData[j].key == 1) {
+                if (tt.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v1_2030.push(victimsAgeData[j].values[i])
+                }
+                if (tf.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v1_3040.push(victimsAgeData[j].values[i])
+                }
+                if (ff.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v1_4050.push(victimsAgeData[j].values[i])
+                }
+                if (fs.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v1_5060.push(victimsAgeData[j].values[i])
+                }
+                if (ss.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v1_6070.push(victimsAgeData[j].values[i])
+                }
+                if (se.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v1_7080.push(victimsAgeData[j].values[i])
+                }
+              }
+
+              if (victimsAgeData[j].key == 2) {
+                if (tt.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v2_2030.push(victimsAgeData[j].values[i])
+                }
+                if (tf.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v2_3040.push(victimsAgeData[j].values[i])
+                }
+                if (ff.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v2_4050.push(victimsAgeData[j].values[i])
+                }
+                if (fs.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v2_5060.push(victimsAgeData[j].values[i])
+                }
+                if (ss.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v2_6070.push(victimsAgeData[j].values[i])
+                }
+                if (se.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v2_7080.push(victimsAgeData[j].values[i])
+                }
+              }
+
+              if (victimsAgeData[j].key == 3) {
+                if (tt.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v3_2030.push(victimsAgeData[j].values[i])
+                }
+                if (tf.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v3_3040.push(victimsAgeData[j].values[i])
+                }
+                if (ff.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v3_4050.push(victimsAgeData[j].values[i])
+                }
+                if (fs.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v3_5060.push(victimsAgeData[j].values[i])
+                }
+                if (ss.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v3_6070.push(victimsAgeData[j].values[i])
+                }
+                if (se.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v3_7080.push(victimsAgeData[j].values[i])
+                }
+              }
+
+              if (victimsAgeData[j].key == 4) {
+                if (tt.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v4_2030.push(victimsAgeData[j].values[i])
+                }
+                if (tf.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v4_3040.push(victimsAgeData[j].values[i])
+                }
+                if (ff.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v4_4050.push(victimsAgeData[j].values[i])
+                }
+                if (fs.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v4_5060.push(victimsAgeData[j].values[i])
+                }
+                if (ss.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v4_6070.push(victimsAgeData[j].values[i])
+                }
+                if (se.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v4_7080.push(victimsAgeData[j].values[i])
+                }
+              }
+
+              if (victimsAgeData[j].key == 5) {
+                if (tt.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v5_2030.push(victimsAgeData[j].values[i])
+                }
+                if (tf.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v5_3040.push(victimsAgeData[j].values[i])
+                }
+                if (ff.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v5_4050.push(victimsAgeData[j].values[i])
+                }
+                if (fs.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v5_5060.push(victimsAgeData[j].values[i])
+                }
+                if (ss.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v5_6070.push(victimsAgeData[j].values[i])
+                }
+                if (se.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v5_7080.push(victimsAgeData[j].values[i])
+                }
+              }
+
+              if (victimsAgeData[j].key > 5) {
+                if (tt.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v6_2030.push(victimsAgeData[j].values[i])
+                }
+                if (tf.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v6_3040.push(victimsAgeData[j].values[i])
+                }
+                if (ff.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v6_4050.push(victimsAgeData[j].values[i])
+                }
+                if (fs.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v6_5060.push(victimsAgeData[j].values[i])
+                }
+                if (ss.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v6_6070.push(victimsAgeData[j].values[i])
+                }
+                if (se.includes(Number(victimsAgeData[j].values[i].Age))) {
+                  v6_7080.push(victimsAgeData[j].values[i])
+                }
+              }
+            }
+          }
+
+        var victimsAgeData = [
+          [v1_2030.length, v1_3040.length, v1_4050.length, v1_5060.length, v1_6070.length, v1_7080.length],
+          [v2_2030.length, v2_3040.length, v2_4050.length, v2_5060.length, v2_6070.length, v2_7080.length],
+          [v3_2030.length, v3_3040.length, v3_4050.length, v3_5060.length, v3_6070.length, v3_7080.length],
+          [v4_2030.length, v4_3040.length, v4_4050.length, v4_5060.length, v4_6070.length, v4_7080.length],
+          [v5_2030.length, v5_3040.length, v5_4050.length, v5_5060.length, v5_6070.length, v5_7080.length],
+          [v6_2030.length, v6_3040.length, v6_4050.length, v6_5060.length, v6_6070.length, v6_7080.length]
+        ]
+
+        var sexAgeData = [
+              [m2030.length, m3040.length, m4050.length, m5060.length, m6070.length, m7080.length],
+              [f2030.length, f3040.length, f4050.length, f5060.length, f6070.length, f7080.length]
+        ];
+
         var raceAgeData = [
               [white2030.length, white3040.length, white4050.length, white5060.length, white6070.length, white7080.length],
               [latino2030.length, latino3040.length, latino4050.length, latino5060.length, latino6070.length, latino7080.length],
@@ -4771,7 +6071,9 @@ function init() {
         // place data in a neat way when drawing the bar chart.
         var raceAgePlot = [];
         var raceStatePlot = [];
-            
+        var sexAgePlot = [];
+        var victimsAgePlot = [];
+
         for (i = 0; i < raceAgeData.length; i++) {
             raceAgePlot[i] = [races[i], raceAgeData[i]];
         }
@@ -4780,8 +6082,17 @@ function init() {
             raceStatePlot[i] = [states[i], raceStateData[i]];
         }
 
+        for (i = 0; i < sexAgeData.length; i++) {
+            sexAgePlot[i] = [sexes[i], sexAgeData[i]];
+        }
+
+        for (i = 0; i < victimsAgeData.length; i++) {
+            victimsAgePlot[i] = [victimsBand[i], victimsAgeData[i]];
+        }
         copyOfRaceAge = raceAgePlot;
         copyOfRaceState = raceStatePlot;
+        copyOfSexAge = sexAgePlot;
+        copyOfVictimsAge = victimsAgePlot;
         console.log("makeData finished")
   } //makeData() ends here
 
@@ -4790,6 +6101,8 @@ function init() {
   function resetVariables() {
         copyOfRaceAge = null;
         copyOfRaceState = null;
+        copyOfSexAge = null;
+        copyOfVictimsAge = null;
         // Race Age variables
         white2030 = [];
         white3040 = [];
@@ -4934,6 +6247,56 @@ function init() {
         blackVA = [];
         blackWA = [];
         blackWY = [];
+
+        m2030 = [];
+        m3040 = [];
+        m4050 = [];
+        m5060 = [];
+        m6070 = [];
+        m7080 = [];
+        f2030 = [];
+        f3040 = [];
+        f4050 = [];
+        f5060 = [];
+        f6070 = [];
+        f7080 = [];
+
+        v1_2030 = [];
+        v2_2030 = [];
+        v3_2030 = [];
+        v4_2030 = [];
+        v5_2030 = [];
+        v6_2030 = [];
+        v1_3040 = [];
+        v2_3040 = [];
+        v3_3040 = [];
+        v4_3040 = [];
+        v5_3040 = [];
+        v6_3040 = []; // above 5
+        v1_4050 = [];
+        v2_4050 = [];
+        v3_4050 = [];
+        v4_4050 = [];
+        v5_4050 = [];
+        v6_4050 = []; // above 5
+        v1_5060 = [];
+        v2_5060 = [];
+        v3_5060 = [];
+        v4_5060 = [];
+        v5_5060 = [];
+        v6_5060 = []; // above 5
+        v1_6070 = [];
+        v2_6070 = [];
+        v3_6070 = [];
+        v4_6070 = [];
+        v5_6070 = [];
+        v6_6070 = []; // above 5
+        v1_7080 = [];
+        v2_7080 = [];
+        v3_7080 = [];
+        v4_7080 = [];
+        v5_7080 = [];
+        v6_7080 = []; // above 5
   } // resetVariables() end here
 
 } // init function end

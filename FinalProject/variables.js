@@ -8,6 +8,9 @@ var states = ["AL", "AR", "AZ", "CA", "CO", "CT", "DE", "FE",
 var races = ["White", "Latino", "Black", "Native American", "Asian", "Other"];
 var method = ["Electrocution", "Lethal Injection", "Hanging", "Gas Chamber", "Firing Squad"];
 var sexes = ["Male", "Female"];
+
+var victimsBand = ["1","2","3","4","5","> 5"];
+
 var ages = [];
 count = 0;
 for (h = 0; h < 81; h++) {
@@ -227,3 +230,58 @@ var blackUT = [];
 var blackVA = [];
 var blackWA = [];
 var blackWY = [];
+
+var m2030 = [];
+var m3040 = [];
+var m4050 = [];
+var m5060 = [];
+var m6070 = [];
+var m7080 = [];
+var f2030 = [];
+var f3040 = [];
+var f4050 = [];
+var f5060 = [];
+var f6070 = [];
+var f7080 = [];
+
+var v1_2030 = [];
+var v2_2030 = [];
+var v3_2030 = [];
+var v4_2030 = [];
+var v5_2030 = [];
+var v6_2030 = []; // above 5
+
+var v1_3040 = [];
+var v2_3040 = [];
+var v3_3040 = [];
+var v4_3040 = [];
+var v5_3040 = [];
+var v6_3040 = []; // above 5
+
+var v1_4050 = [];
+var v2_4050 = [];
+var v3_4050 = [];
+var v4_4050 = [];
+var v5_4050 = [];
+var v6_4050 = []; // above 5
+
+var v1_5060 = [];
+var v2_5060 = [];
+var v3_5060 = [];
+var v4_5060 = [];
+var v5_5060 = [];
+var v6_5060 = []; // above 5
+
+var v1_6070 = [];
+var v2_6070 = [];
+var v3_6070 = [];
+var v4_6070 = [];
+var v5_6070 = [];
+var v6_6070 = []; // above 5
+
+var v1_7080 = [];
+var v2_7080 = [];
+var v3_7080 = [];
+var v4_7080 = [];
+var v5_7080 = [];
+var v6_7080 = []; // above 5
