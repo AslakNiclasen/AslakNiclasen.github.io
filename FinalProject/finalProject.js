@@ -1,6 +1,7 @@
 d3.select(window).on('load', init);
 
 var copyOfData = null;
+var copyOfRaceState = null;
 
 // Initialiation function. Called after body has loaded
 function init() {
@@ -88,13 +89,19 @@ function init() {
   var yAxisScatter = d3.axisLeft()
     .scale(yScatter);  
 
-  var svgScatter = d3.select("#svgScatter")
+  var svgStacked = d3.select("#svgStacked")
       .attr("width", widthScatter + margin.left + margin.right)
       .attr("height", heightScatter + margin.top + margin.bottom)
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
       .attr("padding", 10);
-  
+
+  var labelScatter = d3.select("body").append("div")
+      .attr("class", "tooltipScatter")
+      .style("opacity", 0)
+      .style("position", "absolute")
+      .style("z-index", "10");
+
   var initxScatter = d3.scaleTime().range([0, widthScatter]);
   var inityScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
   var initXdomain = initxScatter.domain([mindate, maxdate]);
@@ -111,6 +118,10 @@ function init() {
       // map data into 5 bins according to execution method
       var histogramData = d3.nest()
         .key(function(d) { return d.Method; })
+        .entries(data);
+
+       var raceData1 = d3.nest()
+        .key(function(d) { return d.Race; })
         .entries(data);
 
       // bar heights for histogram
@@ -148,18 +159,18 @@ function init() {
         .data(histPlot)
         .enter()
         .append("rect")
-        .attr("class", "bar")
-        .attr("x", function(d) { return xHist(d[0]); })
-        .attr("y", function(d) { return yHist(d[1]); })
-        .attr("height", function(d) { return height - yHist(d[1]); })
-        .attr("width", xHist.bandwidth())
         .on("mouseover", function(d) {   
             label.style("opacity", 1); 
             label.html("Number of " + d[0] + "s" + "<br>" + d[1]);
             label.style("visibility", "visible")
                .style("left", (d3.event.pageX - 80) + "px")
                .style("top", (d3.event.pageY - 60) + "px"); })
-        .on("mouseout", function() { label.style("visibility", "hidden");});
+        .on("mouseout", function() { label.style("visibility", "hidden");})
+        .attr("class", "bar")
+        .attr("x", function(d) { return xHist(d[0]); })
+        .attr("y", function(d) { return yHist(d[1]); })
+        .attr("height", function(d) { return height - yHist(d[1]); })
+        .attr("width", xHist.bandwidth());
 
       // y label
       svgHistogram.append("text")
@@ -330,13 +341,8 @@ function init() {
         else if (d.Date.substring(6,10) == 2017) {  
           year2017.push(d);
         }
-      });
-      // checking if correct records are inserted into that array
-      //console.log(year1977); // 1
-      //console.log(year1980); // 0
-      //console.log(year1993); // 38
-      
-      // place each array into a combined array for updating purposes later
+      }); 
+
       allYears = [
         year1977, year1978, year1979, year1980, year1981, year1982, year1983, year1984,
         year1985, year1986, year1987, year1988, year1989, year1990, year1991, year1992,
@@ -470,21 +476,19 @@ function init() {
             .attr("y", "75")
             .text("Year " + 1977);
 
-
         // slider being drawn here
         drawTimeSlider();
 
       // TIMELINE END
 
-
-      // SCATTERPLOT START INITIAL SCATTERPLOT CONTAINS AGE AND DATE
+      // STACKE BARCHART START INITIAL SCATTERPLOT CONTAINS AGE AND DATE - STACKED BARCHART
       mindate = new Date(1977,0,1);
       maxdate = new Date(2017,11,31);
       xScatter.domain([mindate, maxdate])
       yScatter.domain([0,maxAge])
       
       // x Axis Scatter
-      svgScatter.append("g")
+      svgStacked.append("g")
         .attr("class", "axis")
         .attr("id", "xaxis")
         .attr("transform", "translate(0," + heightScatter + ")")
@@ -497,7 +501,7 @@ function init() {
         .attr("dy", "2em");
 
       // x label
-      svgScatter.append("text")
+      svgStacked.append("text")
         .attr("class","textX")
         .attr("id", "xLabelScatter")
         .style("text-anchor", "middle")
@@ -507,7 +511,7 @@ function init() {
         .text("Date of execution");
 
       // y Axis
-      svgScatter.append("g")
+      svgStacked.append("g")
         .attr("class", "axis")
         .attr("id", "yaxis")
         .call(d3.axisLeft(yScatter))
@@ -515,7 +519,7 @@ function init() {
           .attr("font-size", 14);
 
       // y label
-      svgScatter.append("text")
+      svgStacked.append("text")
         .attr("class","textY")
         .attr("id", "yLabelScatter")
         .attr("transform", "rotate(-90)")
@@ -525,7 +529,7 @@ function init() {
         .style("text-anchor", "middle")
         .text("Age of the convicted");
 
-      svgScatter.selectAll(".dot")
+      svgStacked.selectAll(".dot")
         .data(copyOfData)
         .enter()
         .append("circle")
@@ -547,7 +551,7 @@ function init() {
                                   }})
         .attr("cy", function(d) { return yScatter(d.Age); });
     
-        // mapping of each category for scatterplot
+      // mapping of each category for stacked barCHart
       d3.select('#xAge')
         .on("click", xAge);
       d3.select('#xRace')
@@ -560,30 +564,14 @@ function init() {
         .on("click", xType);
       d3.select('#xState')
         .on("click", xState);
-
-      d3.select('#yAge')
-        .on("click", yAge);
-      d3.select('#yRace')
-        .on("click", yRace);
-      d3.select('#ySex')
-        .on("click", ySex);
-      d3.select('#yVictim')
-        .on("click", yVictim);
-      d3.select('#yType')
-        .on("click", yType);
-      d3.select('#yState')
-        .on("click", yState);
-      
-      yScatterCounter = 100;
-      // SCATTERPLOT END
-
-
+      d3.select('#xAgeRace')
+        .on("click", xAgeRace);
+      d3.select('#xRaceState')
+        .on("click", xRaceState);       
   // csv load function end
   });
 
-
-  // HELPER FUNCTIONS
-
+  // HELPER FUNCTIONS for timeline and stacked histograms
   // Choosing the color of a circle based on the type of execution
   function pickCircleColor(data) {   
       if (data.Method == "Electrocution") {
@@ -612,7 +600,7 @@ function init() {
 
 
 // Timeline function to show everything at once
-function updateFullView(allData) {
+  function updateFullView(allData) {
     
     // remove x axis and circles
     svgTimeline.selectAll("circle").remove()
@@ -811,12 +799,8 @@ function updateFullView(allData) {
             labelTimeline.style("visibility", "visible")
                .style("left", (d3.event.pageX + 150) + "px")
                .style("top", (d3.event.pageY - 60) + "px"); })
-        .on("mouseout", function() { labelTimeline.style("visibility", "hidden");});
-      
-      
+        .on("mouseout", function() { labelTimeline.style("visibility", "hidden");});   
   }
-
-
 
   function updateFullViewHistogram(data) {
      svgHistogram.selectAll(".xAxis").remove();
@@ -824,15 +808,15 @@ function updateFullView(allData) {
      d3.selectAll("#arrow").attr("opacity", 0);
      d3.selectAll("#myLine").attr("opacity", 0);
      svgHistogram.selectAll(".histx10").attr("opacity", 0);
-    var xAxisHist = d3.axisBottom()
-      .scale(xHist);
+      var xAxisHist = d3.axisBottom()
+        .scale(xHist);
 
-    var yAxisHist = d3.axisLeft()
-      .scale(yHist);
+      var yAxisHist = d3.axisLeft()
+        .scale(yHist);
 
-    var histogramData = d3.nest()
-        .key(function(d) { return d.Method; })
-        .entries(data);
+      var histogramData = d3.nest()
+          .key(function(d) { return d.Method; })
+          .entries(data);
 
       // bar heights for histogram
       var sumElectrocutions = histogramData[0].values.length;
@@ -866,19 +850,19 @@ function updateFullView(allData) {
 
       // drawing the individual bars
       svgHistogram.selectAll("rect")
-        .transition()
-        .duration(2000)
-        .attr("x", function(d) { return xHist(d[0]); })
-        .attr("y", function(d) { return yHist(d[1]); })
-        .attr("height", function(d) { return height - yHist(d[1]); })
-        .attr("width", xHist.bandwidth())
         .on("mouseover", function(d) {   
             label.style("opacity", 1); 
             label.html("Number of " + d[0] + "s" + "<br>" + d[1]);
             label.style("visibility", "visible")
                .style("left", (d3.event.pageX - 80) + "px")
                .style("top", (d3.event.pageY - 60) + "px"); })
-        .on("mouseout", function() { label.style("visibility", "hidden");});
+        .on("mouseout", function() { label.style("visibility", "hidden");})
+        .transition()
+        .duration(2000)
+        .attr("x", function(d) { return xHist(d[0]); })
+        .attr("y", function(d) { return yHist(d[1]); })
+        .attr("height", function(d) { return height - yHist(d[1]); })
+        .attr("width", xHist.bandwidth());
 
       // y label
       svgHistogram.append("text")
@@ -951,19 +935,19 @@ function updateFullView(allData) {
 
       // drawing the individual bars
       svgHistogram.selectAll("rect")
-        .transition()
-        .duration(2000)
-        .attr("x", function(d) { return xHist(d[0]); })
-        .attr("y", function(d) { return yHist(d[1]); })
-        .attr("height", function(d) { return height - yHist(d[1]); })
-        .attr("width", xHist.bandwidth())
         .on("mouseover", function(d) {   
             label.style("opacity", 1); 
             label.html("Number of " + d[0] + "s" + "<br>" + d[1]);
             label.style("visibility", "visible")
                .style("left", (d3.event.pageX - 80) + "px")
                .style("top", (d3.event.pageY - 60) + "px"); })
-        .on("mouseout", function() { label.style("visibility", "hidden");});
+        .on("mouseout", function() { label.style("visibility", "hidden");})
+        .transition()
+        .duration(2000)
+        .attr("x", function(d) { return xHist(d[0]); })
+        .attr("y", function(d) { return yHist(d[1]); })
+        .attr("height", function(d) { return height - yHist(d[1]); })
+        .attr("width", xHist.bandwidth());
 
       // y label
       svgHistogram.append("text")
@@ -1055,30 +1039,27 @@ function updateFullView(allData) {
     return g.call(slider);
   }
 
-
-
-
-// scatterplot dropdown helpers
-      // drawing the data based on the age on the x-axis
-      function xAge() {
-        yScatterCounter = getScatterCounterY();
-        xScatterCounter = 1; // Age
-        
-        svgScatter.selectAll("#xaxis").remove();
-        svgScatter.selectAll("#yaxis").remove();
-        svgScatter.selectAll("#xLabelScatter").remove();
-        svgScatter.selectAll("#yLabelScatter").remove();
-        svgScatter.selectAll(".xAxis").remove();
-        svgScatter.selectAll(".yAxis").remove();
-        svgScatter.selectAll("circle").remove();
-        svgScatter.selectAll(".bar").remove();
+  // scatterplot dropdown functions
+  // drawing the data based on the picked item
+  function xAge() {
+        svgStacked.selectAll("#xaxis").remove();
+        svgStacked.selectAll(".AgeRace").remove();
+        svgStacked.selectAll("#yaxis").remove();
+        svgStacked.selectAll("#xLabelScatter").remove();
+        svgStacked.selectAll("#yLabelScatter").remove();
+        svgStacked.selectAll(".xAxis").remove();
+        svgStacked.selectAll(".yAxis").remove();
+        svgStacked.selectAll("circle").remove();
+        svgStacked.selectAll(".bar").remove();
+        svgStacked.selectAll(".bar1").remove();
+        svgStacked.selectAll(".RaceState").remove();
 
         //yScatterCounter = 100; // barplot
         xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.6);
-        xScatter.domain(["20-30", "30-40", "40-50", "50-60", "60-70"]);
+        xScatter.domain(agesBand);
 
         yScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
-        yScatter.domain([0, 1250]);
+        yScatter.domain([0, 600]);
 
         xAxisScatter = d3.axisBottom()
           .scale(xScatter);
@@ -1089,55 +1070,54 @@ function updateFullView(allData) {
         ageData = d3.nest()
               .key(function(d) { return d.Age; })
                 .entries(copyOfData);
-
-        console.log(ageData);
-
-        // bar heights for histogram
-        // ages are binned with 10 year intervals
-        var tt = [20,21,22,23,24,25,26,27,28,29];
-        var tf = [30,31,32,33,34,35,36,37,38,39];
-        var ff = [40,41,42,43,44,45,46,47,48,49];
-        var fs = [50,51,52,53,54,55,56,57,58,59];
-        var ss = [60,61,62,63,64,65,66,67,68,69];
-        a1 = 0;
-        a2 = 0;
-        a3 = 0;
-        a4 = 0;
-        a5 = 0;
-        agesX = ["20-30","30-40","40-50","50-60","60-70"];
+ 
+        // an array containing the individually arrays of a given age within the bins
+        // i.e. a1 contains a set of arrays which has data where the age is between 20 and 29.
+        
+        a1Length = 0;
+        a2Length = 0;
+        a3Length = 0;
+        a4Length = 0;
+        a5Length = 0;
+        a6Length = 0;
 
         for (j = 0; j < ageData.length; j++) {
           if (tt.includes(Number(ageData[j].key)) == true) {
-            a1 = a1 + ageData[j].values.length;
+            a1Length = a1Length + ageData[j].values.length;
           }
           if (tf.includes(Number(ageData[j].key)) == true) {
-            a2 = a2 + ageData[j].values.length;
+            a2Length = a2Length + ageData[j].values.length;
           }
           if (ff.includes(Number(ageData[j].key)) == true) {
-            a3 = a3 + ageData[j].values.length;
+            a3Length = a3Length + ageData[j].values.length;
           }
           if (fs.includes(Number(ageData[j].key)) == true) {
-            a4 = a4 + ageData[j].values.length;
+            a4Length = a4Length + ageData[j].values.length;
           }
-          else {
-            a5 = a5 + ageData[j].values.length;
+          if (se.includes(Number(ageData[j].key)) == true) {
+            a6Length = a6Length + ageData[j].values.length;
+          }
+          if (ss.includes(Number(ageData[j].key)) == true) {
+            a5Length = a5Length + ageData[j].values.length;
           }
         }
         
-        var ageData =  [a1, a2, a3, a4, a5];
+        //console.log(a1.length);
+        var ageData1 = [];
+        var ageData =  [a1Length, a2Length, a3Length, a4Length, a5Length, a6Length];
         var agePlot = [];
         for (i = 0; i < ageData.length; i++) {
-            agePlot[i] = [agesX[i], ageData[i]];
+            agePlot[i] = [agesBand[i], ageData[i]];
         }
 
         // x - axis
-        svgScatter.append("g")
+        svgStacked.append("g")
           .attr("class", "xAxis")
           .attr("transform", "translate(0," + heightScatter + ")")
           .style("font-size", 16)
           .call(xAxisScatter);
 
-        svgScatter.append("text")
+        svgStacked.append("text")
           .attr("class","textX")
           .attr("id", "xLabelScatter")
           .style("text-anchor", "middle")
@@ -1147,13 +1127,13 @@ function updateFullView(allData) {
           .text("Age of convicted");
 
         //y-axis
-        svgScatter.append("g")
+        svgStacked.append("g")
           .attr("class", "yAxis")
           .style("font-size", 16)
           .call(yAxisScatter);
 
         // y label
-        svgScatter.append("text")
+        svgStacked.append("text")
           .attr("class","textY")
           .attr("id", "yLabelScatter")
           .attr("transform", "rotate(-90)")
@@ -1164,38 +1144,56 @@ function updateFullView(allData) {
           .text("Total number of convicted people");
 
         // drawing the individual bars
-        svgScatter.selectAll(".bar")
+        svgStacked.selectAll(".bar")
           .data(agePlot)
           .enter()
           .append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + d[1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
           .transition()
           .duration(1000)
-          .attr("class", "bar")
+          .attr("class", "bar1")
           .attr("x", function(d) { return xScatter(d[0]); })
-          .attr("y", function(d) { if (yScatterCounter == 1 || 
-                                       yScatterCounter == 100) { 
-                                          return yScatter(d[1]);
-                                    }
-                                  })
+          .attr("y", function(d) { return yScatter(d[1]); })
           .attr("height", function(d) { return heightScatter - yScatter(d[1]); })
           .attr("width", xScatter.bandwidth())
+  }
 
-          // draw labels here
-      }
+  function xRace() {
+        svgStacked.selectAll("#xaxis").remove();
+        svgStacked.selectAll(".AgeRace").remove();
+        svgStacked.selectAll("#yaxis").remove();
+        svgStacked.selectAll("#xLabelScatter").remove();
+        svgStacked.selectAll("#yLabelScatter").remove();
+        svgStacked.selectAll(".xAxis").remove();
+        svgStacked.selectAll(".yAxis").remove();
+        svgStacked.selectAll("circle").remove();
+        svgStacked.selectAll(".bar").remove();
+        svgStacked.selectAll(".bar1").remove();
+        svgStacked.selectAll(".RaceState").remove();
 
-      function xRace() {
-        yScatterCounter = getScatterCounterY();
-        xScatterCounter = 2 // race;
-        
-        svgScatter.selectAll("#xaxis").remove();
-        svgScatter.selectAll("#yaxis").remove();
-        svgScatter.selectAll("#xLabelScatter").remove();
-        svgScatter.selectAll("#yLabelScatter").remove();
-        svgScatter.selectAll(".xAxis").remove();
-        svgScatter.selectAll(".yAxis").remove();
-        svgScatter.selectAll("circle").remove();
-        svgScatter.selectAll(".bar").remove();
+        makeData()
 
+        r1 = d3.sum(copyOfRaceAge[0][1]);
+        r2 = d3.sum(copyOfRaceAge[1][1]);
+        r3 = d3.sum(copyOfRaceAge[2][1]);
+        r4 = d3.sum(copyOfRaceAge[3][1]);
+        r5 = d3.sum(copyOfRaceAge[4][1]);
+        r6 = d3.sum(copyOfRaceAge[5][1]);
+
+        var raceDataNew = [];
+        var raceDataNew =  [r1, r2, r3, r4, r5, r6];
+        var racePlot = [];
+        for (i = 0; i < raceDataNew.length; i++) {
+            racePlot[i] = [races[i], raceDataNew[i]];
+        }
+
+        // currently showing Race against ages.
         xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
         xScatter.domain(races);
 
@@ -1208,34 +1206,14 @@ function updateFullView(allData) {
         yAxisScatter = d3.axisLeft()
           .scale(yScatter);
 
-        raceData = d3.nest()
-              .key(function(d) { return d.Race; })
-                .entries(copyOfData);
-
-        // bar heights for histogram
-        var r1 = raceData[0].values.length;
-        var r2 = raceData[1].values.length;
-        var r3 = raceData[2].values.length;
-        var r4 = raceData[3].values.length;
-        var r5 = raceData[4].values.length;
-        var r6 = raceData[5].values.length;
-
-        var raceData =  [r1, r2, r3, r4, r5, r6];
-        
-        // place data in a neat way when drawing the bar chart.
-        var racePlot = [];
-        for (i = 0; i < raceData.length; i++) {
-            racePlot[i] = [races[i], raceData[i]];
-        }
-
         // x - axis
-        svgScatter.append("g")
+        svgStacked.append("g")
           .attr("class", "xAxis")
           .attr("transform", "translate(0," + heightScatter + ")")
           .style("font-size", 16)
           .call(xAxisScatter);
 
-        svgScatter.append("text")
+        svgStacked.append("text")
           .attr("class","textX")
           .attr("id", "xLabelScatter")
           .style("text-anchor", "middle")
@@ -1244,13 +1222,13 @@ function updateFullView(allData) {
           .attr("font-size", 24)
           .text("Race of convicted");
         //y-axis
-        svgScatter.append("g")
+        svgStacked.append("g")
           .attr("class", "yAxis")
           .style("font-size", 16)
           .call(yAxisScatter);
 
-                // y label
-        svgScatter.append("text")
+        // y label
+        svgStacked.append("text")
           .attr("class","textY")
           .attr("id", "yLabelScatter")
           .attr("transform", "rotate(-90)")
@@ -1260,39 +1238,39 @@ function updateFullView(allData) {
           .style("text-anchor", "middle")
           .text("Total number of convicted people");
 
-        // drawing the individual bars
-        svgScatter.selectAll(".bar")
+        svgStacked.selectAll(".bar")
           .data(racePlot)
           .enter()
           .append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + d[1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
           .transition()
-          .duration(1000)
+          .duration(2000)
           .attr("class", "bar")
           .attr("x", function(d) { return xScatter(d[0]); })
-          .attr("y", function(d) { if (yScatterCounter == 1 || 
-                                       yScatterCounter == 100) { 
-                                          return yScatter(d[1]);
-                                    }
-                                  })
+          .attr("y", function(d) { return yScatter(d[1]); } )
           .attr("height", function(d) { return heightScatter - yScatter(d[1]); })
           .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+  }
 
-          // add labels also
-      }
-
-      function xSex() {
-        yScatterCounter = getScatterCounterY();
-        xScatterCounter = 3 // sex;
-        
-        svgScatter.selectAll("#xaxis").remove();
-        svgScatter.selectAll("#yaxis").remove();
-        svgScatter.selectAll("#xLabelScatter").remove();
-        svgScatter.selectAll("#yLabelScatter").remove();
-        svgScatter.selectAll(".xAxis").remove();
-        svgScatter.selectAll(".yAxis").remove();
-        svgScatter.selectAll("circle").remove();
-        svgScatter.selectAll(".bar").remove();
-
+  function xSex() {  
+        svgStacked.selectAll("#xaxis").remove();
+        svgStacked.selectAll("#yaxis").remove();
+        svgStacked.selectAll("#xLabelScatter").remove();
+        svgStacked.selectAll("#yLabelScatter").remove();
+        svgStacked.selectAll(".xAxis").remove();
+        svgStacked.selectAll(".yAxis").remove();
+        svgStacked.selectAll("circle").remove();
+        svgStacked.selectAll(".bar").remove();
+        svgStacked.selectAll(".bar1").remove();
+        svgStacked.selectAll(".AgeRace").remove();
+        svgStacked.selectAll(".RaceState").remove();
 
         xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
         xScatter.domain(sexes);
@@ -1322,13 +1300,13 @@ function updateFullView(allData) {
         }
 
         // x - axis
-        svgScatter.append("g")
+        svgStacked.append("g")
           .attr("class", "xAxis")
           .attr("transform", "translate(0," + heightScatter + ")")
           .style("font-size", 16)
           .call(xAxisScatter);
 
-        svgScatter.append("text")
+        svgStacked.append("text")
           .attr("class","textX")
           .attr("id", "xLabelScatter")
           .style("text-anchor", "middle")
@@ -1338,13 +1316,13 @@ function updateFullView(allData) {
           .text("Sex of convicted");
         
         //y-axis
-        svgScatter.append("g")
+        svgStacked.append("g")
           .attr("class", "yAxis")
           .style("font-size", 16)
           .call(yAxisScatter);
 
                 // y label
-        svgScatter.append("text")
+        svgStacked.append("text")
           .attr("class","textY")
           .attr("id", "yLabelScatter")
           .attr("transform", "rotate(-90)")
@@ -1355,36 +1333,38 @@ function updateFullView(allData) {
           .text("Total number of convicted people");
 
         // drawing the individual bars
-        svgScatter.selectAll(".bar")
+        svgStacked.selectAll(".bar")
           .data(sexPlot)
           .enter()
           .append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + d[1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
           .transition()
           .duration(1000)
-          .attr("class", "bar")
+          .attr("class", "bar1")
           .attr("x", function(d) { return xScatter(d[0]); })
-          .attr("y", function(d) { if (yScatterCounter == 1 || 
-                                       yScatterCounter == 100) { 
-                                          return yScatter(d[1]);
-                                    }
-                                  })
+          .attr("y", function(d) { return yScatter(d[1]); })
           .attr("height", function(d) { return heightScatter - yScatter(d[1]); })
           .attr("width", xScatter.bandwidth())
+  }
 
-      }
-
-      function xState() {
-        yScatterCounter = getScatterCounterY();
-        xScatterCounter = 4; // State
-
-        svgScatter.selectAll("#xaxis").remove();
-        svgScatter.selectAll("#yaxis").remove();
-        svgScatter.selectAll("#xLabelScatter").remove();
-        svgScatter.selectAll("#yLabelScatter").remove();
-        svgScatter.selectAll(".xAxis").remove();
-        svgScatter.selectAll(".yAxis").remove();
-        svgScatter.selectAll("circle").remove();
-        svgScatter.selectAll(".bar").remove();
+  function xState() {
+        svgStacked.selectAll("#xaxis").remove();
+        svgStacked.selectAll("#yaxis").remove();
+        svgStacked.selectAll("#xLabelScatter").remove();
+        svgStacked.selectAll("#yLabelScatter").remove();
+        svgStacked.selectAll(".xAxis").remove();
+        svgStacked.selectAll(".yAxis").remove();
+        svgStacked.selectAll("circle").remove();
+        svgStacked.selectAll(".bar").remove();
+        svgStacked.selectAll(".bar1").remove();
+        svgStacked.selectAll(".AgeRace").remove();
+        svgStacked.selectAll(".RaceState").remove();
 
           
         xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
@@ -1404,63 +1384,62 @@ function updateFullView(allData) {
               .entries(copyOfData);
         
         // bar heights for histogram
-        var s1 = stateData[0].values.length;
-        var s2 = stateData[1].values.length;
-        var s3 = stateData[2].values.length;
-        var s4 = stateData[3].values.length;
-        var s5 = stateData[4].values.length;
-        var s6 = stateData[5].values.length;
-        var s7 = stateData[6].values.length;
-        var s8 = stateData[7].values.length;
-        var s9 = stateData[8].values.length;
-        var s10 = stateData[9].values.length;
-        var s11 = stateData[10].values.length;
-        var s12 = stateData[11].values.length;
-        var s13 = stateData[12].values.length;
-        var s14 = stateData[13].values.length;
-        var s15 = stateData[14].values.length;
-        var s16 = stateData[15].values.length;
-        var s17 = stateData[16].values.length;
-        var s18 = stateData[17].values.length;
-        var s19 = stateData[18].values.length;
-        var s20 = stateData[19].values.length;
-        var s21 = stateData[20].values.length;
-        var s22 = stateData[21].values.length;
-        var s23 = stateData[22].values.length;
-        var s24 = stateData[23].values.length;
-        var s25 = stateData[24].values.length;
-        var s26 = stateData[25].values.length;
-        var s27 = stateData[26].values.length;
-        var s28 = stateData[27].values.length;
-        var s29 = stateData[28].values.length;
-        var s30 = stateData[29].values.length;
-        var s31 = stateData[30].values.length;
-        var s32 = stateData[31].values.length;
-        var s33 = stateData[32].values.length;
-        var s34 = stateData[33].values.length;
-        var s35 = stateData[34].values.length;
-
-        var stateData =  [s1, s2, s3, s4, s5,
-                          s6, s7, s8, s9, s10,
-                          s11, s12, s13, s14, s15,
-                          s16, s17, s18, s19, s20,
-                          s21, s22, s23, s24, s25,
-                          s26, s27, s28, s29, s30,                          
-                          s31, s32, s33, s34, s35];
+        var s0 = stateData[0].values.length;
+        var s1 = stateData[1].values.length;
+        var s2 = stateData[2].values.length;
+        var s3 = stateData[3].values.length;
+        var s4 = stateData[4].values.length;
+        var s5 = stateData[5].values.length;
+        var s6 = stateData[6].values.length;
+        var s7 = stateData[7].values.length;
+        var s8 = stateData[8].values.length;
+        var s9 = stateData[9].values.length;
+        var s10 = stateData[10].values.length;
+        var s11 = stateData[11].values.length;
+        var s12 = stateData[12].values.length;
+        var s13 = stateData[13].values.length;
+        var s14 = stateData[14].values.length;
+        var s15 = stateData[15].values.length;
+        var s16 = stateData[16].values.length;
+        var s17 = stateData[17].values.length;
+        var s18 = stateData[18].values.length;
+        var s19 = stateData[19].values.length;
+        var s20 = stateData[20].values.length;
+        var s21 = stateData[21].values.length;
+        var s22 = stateData[22].values.length;
+        var s23 = stateData[23].values.length;
+        var s24 = stateData[24].values.length;
+        var s25 = stateData[25].values.length;
+        var s26 = stateData[26].values.length;
+        var s27 = stateData[27].values.length;
+        var s28 = stateData[28].values.length;
+        var s29 = stateData[29].values.length;
+        var s30 = stateData[30].values.length;
+        var s31 = stateData[31].values.length;
+        var s32 = stateData[32].values.length;
+        var s33 = stateData[33].values.length;
+        var s34 = stateData[34].values.length;
+        console.log(stateData)
+        console.log(states)
+        var statesNew = []
+        
+        for (j = 0; j < stateData.length; j++) {
+          statesNew[j] = stateData[j].key;
+        }
         
         var statePlot = [];
         for (i = 0; i < stateData.length; i++) {
-            statePlot[i] = [states[i], stateData[i]];
+            statePlot[i] = [statesNew[i], stateData[i]];
         }
 
         // x - axis
-        svgScatter.append("g")
+        svgStacked.append("g")
           .attr("class", "xAxis")
           .attr("transform", "translate(0," + heightScatter + ")")
           .style("font-size", 14)
           .call(xAxisScatter);
 
-        svgScatter.append("text")
+        svgStacked.append("text")
           .attr("class","textX")
           .attr("id", "xLabelScatter")
           .style("text-anchor", "middle")
@@ -1470,13 +1449,13 @@ function updateFullView(allData) {
           .text("State of execution");
 
         //y-axis
-        svgScatter.append("g")
+        svgStacked.append("g")
           .attr("class", "yAxis")
           .style("font-size", 16)
           .call(yAxisScatter);
 
                 // y label
-        svgScatter.append("text")
+        svgStacked.append("text")
           .attr("class","textY")
           .attr("id", "yLabelScatter")
           .attr("transform", "rotate(-90)")
@@ -1486,38 +1465,46 @@ function updateFullView(allData) {
           .style("text-anchor", "middle")
           .text("Total number of convicted people");
 
-        // drawing the individual bars
-        svgScatter.selectAll(".bar")
+         // drawing the individual bars
+        svgStacked.selectAll(".bar")
           .data(statePlot)
           .enter()
           .append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + d[1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
           .transition()
           .duration(1000)
-          .attr("class", "bar")
+          .attr("class", "bar1")
           .attr("x", function(d) {return xScatter(d[0]); })
-          .attr("y", function(d) { if (yScatterCounter == 100) {return yScatter(d[1]);} })
+          .attr("y", function(d) { return yScatter(d[1]); })
           .attr("height", function(d) { return heightScatter - yScatter(d[1]); })
           .attr("width", xScatter.bandwidth())
-      }
+  }
 
-      function xType() {
-        yScatterCounter = getScatterCounterY();
-        xScatterCounter = 5; // type
+  function xType() {
+        svgStacked.selectAll("#xaxis").remove();
+        svgStacked.selectAll("#yaxis").remove();
+        svgStacked.selectAll("#xLabelScatter").remove();
+        svgStacked.selectAll("#yLabelScatter").remove();
+        svgStacked.selectAll(".xAxis").remove();
+        svgStacked.selectAll(".yAxis").remove();
+        svgStacked.selectAll("circle").remove();
+        svgStacked.selectAll(".bar").remove();
+        svgStacked.selectAll(".bar1").remove();
+        svgStacked.selectAll(".AgeRace").remove();
+        svgStacked.selectAll(".RaceState").remove();
 
-        svgScatter.selectAll("#xaxis").remove();
-        svgScatter.selectAll("#yaxis").remove();
-        svgScatter.selectAll("#xLabelScatter").remove();
-        svgScatter.selectAll("#yLabelScatter").remove();
-        svgScatter.selectAll(".xAxis").remove();
-        svgScatter.selectAll(".yAxis").remove();
-        svgScatter.selectAll("circle").remove();
-        svgScatter.selectAll(".bar").remove();
         //yScatterCounter = 100; // barplot
         xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
         xScatter.domain(method);
 
         yScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
-        yScatter.domain([0, 200]);
+        yScatter.domain([0, 1200]);
 
         xAxisScatter = d3.axisBottom()
           .scale(xScatter);
@@ -1543,13 +1530,13 @@ function updateFullView(allData) {
             typePlot[i] = [method[i], typeData[i]];
         }
         // x - axis
-        svgScatter.append("g")
+        svgStacked.append("g")
           .attr("class", "xAxis")
           .attr("transform", "translate(0," + heightScatter + ")")
           .style("font-size", 16)
           .call(xAxisScatter);
 
-        svgScatter.append("text")
+        svgStacked.append("text")
           .attr("class","textX")
           .attr("id", "xLabelScatter")
           .style("text-anchor", "middle")
@@ -1558,13 +1545,13 @@ function updateFullView(allData) {
           .attr("font-size", 24)
           .text("Type of execution");
         //y-axis
-        svgScatter.append("g")
+        svgStacked.append("g")
           .attr("class", "yAxis")
           .style("font-size", 16)
           .call(yAxisScatter);
 
                 // y label
-        svgScatter.append("text")
+        svgStacked.append("text")
           .attr("class","textY")
           .attr("id", "yLabelScatter")
           .attr("transform", "rotate(-90)")
@@ -1575,13 +1562,20 @@ function updateFullView(allData) {
           .text("Total number of convicted people");
 
         // drawing the individual bars
-        svgScatter.selectAll(".bar")
+        svgStacked.selectAll(".bar")
           .data(typePlot)
           .enter()
           .append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + d[1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
           .transition()
           .duration(1000)
-          .attr("class", "bar")
+          .attr("class", "bar1")
           .attr("x", function(d) { return xScatter(d[0]); })
           .attr("y", function(d) { if (yScatterCounter == 1 || 
                                        yScatterCounter == 100) { 
@@ -1592,20 +1586,20 @@ function updateFullView(allData) {
           .attr("width", xScatter.bandwidth())
 
           // add labels also
-      }
+  }
 
-      function xVictim() {
-        yScatterCounter = getScatterCounterY();
-        xScatterCounter = 6; // victim
-        
-        svgScatter.selectAll("#xaxis").remove();
-        svgScatter.selectAll("#yaxis").remove();
-        svgScatter.selectAll("#xLabelScatter").remove();
-        svgScatter.selectAll("#yLabelScatter").remove();
-        svgScatter.selectAll(".xAxis").remove();
-        svgScatter.selectAll(".yAxis").remove();
-        svgScatter.selectAll("circle").remove();
-        svgScatter.selectAll(".bar").remove();
+  function xVictim() {
+        svgStacked.selectAll("#xaxis").remove();
+        svgStacked.selectAll("#yaxis").remove();
+        svgStacked.selectAll("#xLabelScatter").remove();
+        svgStacked.selectAll("#yLabelScatter").remove();
+        svgStacked.selectAll(".xAxis").remove();
+        svgStacked.selectAll(".yAxis").remove();
+        svgStacked.selectAll("circle").remove();
+        svgStacked.selectAll(".bar").remove();
+        svgStacked.selectAll(".bar1").remove();
+        svgStacked.selectAll(".AgeRace").remove();
+        svgStacked.selectAll(".RaceState").remove();
 
         //yScatterCounter = 100; // barplot
         xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.6);
@@ -1659,13 +1653,13 @@ function updateFullView(allData) {
         }
         
         // x - axis
-        svgScatter.append("g")
+        svgStacked.append("g")
           .attr("class", "xAxis")
           .attr("transform", "translate(0," + heightScatter + ")")
           .style("font-size", 16)
           .call(xAxisScatter);
 
-        svgScatter.append("text")
+        svgStacked.append("text")
           .attr("class","textX")
           .attr("id", "xLabelScatter")
           .style("text-anchor", "middle")
@@ -1675,13 +1669,13 @@ function updateFullView(allData) {
           .text("Number of victims");
         
         //y-axis
-        svgScatter.append("g")
+        svgStacked.append("g")
           .attr("class", "yAxis")
           .style("font-size", 16)
           .call(yAxisScatter);
 
                 // y label
-        svgScatter.append("text")
+        svgStacked.append("text")
           .attr("class","textY")
           .attr("id", "yLabelScatter")
           .attr("transform", "rotate(-90)")
@@ -1692,101 +1686,3258 @@ function updateFullView(allData) {
           .text("Total number of convicted people");
 
         // drawing the individual bars
-        svgScatter.selectAll(".bar")
+        svgStacked.selectAll(".bar")
           .data(victimsPlot)
           .enter()
           .append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + d[1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
           .transition()
           .duration(1000)
-          .attr("class", "bar")
+          .attr("class", "bar1")
           .attr("x", function(d) { return xScatter(d[0]); })
-          .attr("y", function(d) { if (yScatterCounter == 1 || 
-                                       yScatterCounter == 100) { 
-                                          return yScatter(d[1]);
-                                    }
-                                  })
+          .attr("y", function(d) { return yScatter(d[1]); })
           .attr("height", function(d) { return heightScatter - yScatter(d[1]); })
           .attr("width", xScatter.bandwidth())
+  } 
+
+  function xAgeRace() {
+        makeData();
+        svgStacked.selectAll(".RaceState").remove();
+        svgStacked.selectAll(".AgeRace").remove();
+        svgStacked.selectAll("#xaxis").remove();
+        svgStacked.selectAll("#yaxis").remove();
+        svgStacked.selectAll("#xLabelScatter").remove();
+        svgStacked.selectAll("#yLabelScatter").remove();
+        svgStacked.selectAll(".xAxis").remove();
+        svgStacked.selectAll(".yAxis").remove();
+        svgStacked.selectAll("circle").remove();
+        svgStacked.selectAll(".bar").remove();
+        svgStacked.selectAll(".bar1").remove();
+
+        xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
+        xScatter.domain(races);
+
+        yScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
+        yScatter.domain([0, 850]);
+
+        xAxisScatter = d3.axisBottom()
+          .scale(xScatter);
+
+        yAxisScatter = d3.axisLeft()
+          .scale(yScatter);
+
+        // x - axis
+        svgStacked.append("g")
+          .attr("class", "xAxis")
+          .attr("transform", "translate(0," + heightScatter + ")")
+          .style("font-size", 16)
+          .call(xAxisScatter);
+
+        svgStacked.append("text")
+          .attr("class","textX")
+          .attr("id", "xLabelScatter")
+          .style("text-anchor", "middle")
+          .attr("y", heightScatter + 60)
+          .attr("x", widthScatter / 2)
+          .attr("font-size", 24)
+          .text("Race of convicted");
+        //y-axis
+        svgStacked.append("g")
+          .attr("class", "yAxis")
+          .style("font-size", 16)
+          .call(yAxisScatter);
+
+        // y label
+        svgStacked.append("text")
+          .attr("class","textY")
+          .attr("id", "yLabelScatter")
+          .attr("transform", "rotate(-90)")
+          .attr("font-size", 24)
+          .attr("y", -75)
+          .attr("x", 100 - height)
+          .style("text-anchor", "middle")
+          .text("Total number of convicted people");
+
+        svgStacked.append("rect")
+          .attr("class", "AgeRace")
+          .attr("y",70)
+          .attr("x",590)
+          .attr("height", "25%")
+          .attr("width", "75%")
+          .attr("fill", "gray");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 100)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .attr("x", 600)
+          .style("fill", "blue")
+          .text("Blue - ages 20 - 29");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .attr("y", 130)
+          .attr("x", 600)
+          .style("fill", "tomato")
+          .text("Red - ages 30 - 39");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 160)
+          .attr("x", 600)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .style("fill", "green")
+          .text("Green - ages 40 - 49");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 190)
+          .attr("x", 600)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .style("fill", "Steelblue")
+          .text("Lightblue - ages 50 - 59");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 220)
+          .attr("x", 600)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .style("fill", "yellow")
+          .text("Yellow - ages 60 - 69");
+        svgStacked.append("text")
+        .attr("class", "AgeRace")
+          .attr("y", 250)
+          .attr("x", 600)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .style("fill", "black")
+          .text("Gray - ages  > 70");
 
 
-      } 
-
-
-      function yAge() {
-        yScatterCounter = 1;
-        xScatterCounter = getScatterCounterx();
-
-        xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.6);
-        xScatter.domain(["1", "2", "3", "4", "5", "> 5"]);
-
-        var yScatter = d3.scaleLinear()
-          .domain([0, d3.max(copyOfData, function(d) {  return d3.max(d, function(d) { return d.Age0 + d.Age; });  })])
-          .range([height, 0]);
-
-        var colors = ["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56"];
-
-        // Create groups for each series, rects for each segment 
-        var groups = svgScatter.selectAll("g.cost")
-          .data(copyOfData)
-          .enter().append("g")
-          .attr("class", "cost")
-          .style("fill", function(d, i) { return colors[i]; });
-
-        var rect = groups.selectAll("rect")
-          .data(function(d) { return d; })
+        // drawing the individual bars
+        // white
+        svgStacked.selectAll(".bar")
+          .data(copyOfRaceAge)
           .enter()
           .append("rect")
-          .attr("x", function(d) { return xScatter(d.x); })
-          .attr("y", function(d) { return yScatter(d.Age0 + d.Age); })
-          .attr("height", function(d) { return yScatter(d.Age0) - yScatter(d.Age0 + d.Age); })
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[0][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[0][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[0][1][0]); })
           .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[0][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[0][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[0][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[0][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[0][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[0][1][2] + copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[0][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[0][1][3] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[0][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[0][1][3] + copyOfRaceAge[0][1][2] + copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[0][1][3]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "steelblue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[0][1][4] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[0][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[0][1][4] + copyOfRaceAge[0][1][3] + copyOfRaceAge[0][1][2] + copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[0][1][4]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "yellow");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[0][1][5] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[0][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[0][1][5] + copyOfRaceAge[0][1][4] + copyOfRaceAge[0][1][3] + copyOfRaceAge[0][1][2] + copyOfRaceAge[0][1][1] + copyOfRaceAge[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[0][1][5]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "gray");
+        // latino
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[1][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[1][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[1][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[1][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[1][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[1][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[1][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[1][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[1][1][2] + copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[1][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[1][1][3] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[1][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[1][1][3] + copyOfRaceAge[1][1][2] + copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[1][1][3]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "steelblue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[1][1][4] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[1][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[1][1][4] + copyOfRaceAge[1][1][3] + copyOfRaceAge[1][1][2] + copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[1][1][4]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "yellow");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[1][1][5] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[1][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[1][1][5] + copyOfRaceAge[1][1][4] + copyOfRaceAge[1][1][3] + copyOfRaceAge[1][1][2] + copyOfRaceAge[1][1][1] + copyOfRaceAge[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[1][1][5]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "gray");
+        // black
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[2][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[2][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[2][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[2][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[2][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[2][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[2][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[2][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[2][1][2] + copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[2][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[2][1][3] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[2][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[2][1][3] + copyOfRaceAge[2][1][2] + copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[2][1][3]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "steelblue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[2][1][4] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[2][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[2][1][4] + copyOfRaceAge[2][1][3] + copyOfRaceAge[2][1][2] + copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[2][1][4]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "yellow");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[2][1][5] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[2][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[2][1][5] + copyOfRaceAge[2][1][4] + copyOfRaceAge[2][1][3] + copyOfRaceAge[2][1][2] + copyOfRaceAge[2][1][1] + copyOfRaceAge[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[2][1][5]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "gray");
+        //native american
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[3][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[3][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[3][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[3][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[3][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[3][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[3][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[3][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[3][1][2] + copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[3][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[3][1][3] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[3][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[3][1][3] + copyOfRaceAge[3][1][2] + copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[3][1][3]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "steelblue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[3][1][4] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[3][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[3][1][4] + copyOfRaceAge[3][1][3] + copyOfRaceAge[3][1][2] + copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[3][1][4]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "yellow");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[3][1][5] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[3][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[3][1][5] + copyOfRaceAge[3][1][4] + copyOfRaceAge[3][1][3] + copyOfRaceAge[3][1][2] + copyOfRaceAge[3][1][1] + copyOfRaceAge[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[3][1][5]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "gray");
+        //Asian Not all ages represented
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[4][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[4][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[4][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[4][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[4][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[4][1][1] + copyOfRaceAge[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[4][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[4][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[4][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[4][1][2] + copyOfRaceAge[4][1][1] + copyOfRaceAge[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[4][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+          // other not all ages are represented
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[5][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[5][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[5][1][1] + copyOfRaceAge[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[5][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceAge[5][1][3] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceAge[5][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceAge[5][1][3] + copyOfRaceAge[5][1][2] + copyOfRaceAge[5][1][1] + copyOfRaceAge[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceAge[5][1][3]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "steelblue");        
+  // end of xAgeRace   
+  }
 
-       
-        console.log("y age")
-      }
-      function yRace() {
-        yScatterCounter = 2;
-        xScatterCounter = getScatterCounterx();
-        console.log("y race")
-      }
-      function ySex() {
-        yScatterCounter = 3;
-        xScatterCounter = getScatterCounterx();
-        console.log("y gender")
-      }
-      function yState() {
-        yScatterCounter = 4;
-        xScatterCounter = getScatterCounterx();
-        console.log("y state")
-      }
-      function yType() {
-        yScatterCounter = 5;
-        xScatterCounter = getScatterCounterx();
-        console.log("y type")
-      }
-      function yVictim() {
-        yScatterCounter = 6;
-        xScatterCounter = getScatterCounterx();
-        console.log("y victims")
-      }
+  function xRaceState() {
+        makeData();
+        svgStacked.selectAll(".RaceState").remove();
+        svgStacked.selectAll(".AgeRace").remove();
+        svgStacked.selectAll("#xaxis").remove();
+        svgStacked.selectAll("#yaxis").remove();
+        svgStacked.selectAll("#xLabelScatter").remove();
+        svgStacked.selectAll("#yLabelScatter").remove();
+        svgStacked.selectAll(".xAxis").remove();
+        svgStacked.selectAll(".yAxis").remove();
+        svgStacked.selectAll("circle").remove();
+        svgStacked.selectAll(".bar").remove();
+        svgStacked.selectAll(".bar1").remove();
 
+        console.log(copyOfRaceState)
+        console.log(states)
 
-      function calculateVictims(data) {
-          var aString = data["Number / Race / Sex of Victims"];
-          var sumVictims = aString.match(/\d+/g).map(Number).reduce((a, b) => a + b, 0);
-          return sumVictims; // no scaling for histogram
-      }
+        xScatter = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.5);
+        xScatter.domain(states);
 
-      function getScatterCounterx() {
-        return xScatterCounter;
-      }
+        yScatter = d3.scaleLinear().rangeRound([heightScatter, 0]);
+        yScatter.domain([0, 550]);
 
-      function getScatterCounterY() {
-        return yScatterCounter;
-      }
+        xAxisScatter = d3.axisBottom()
+          .scale(xScatter);
 
-// init function end
-}   
+        yAxisScatter = d3.axisLeft()
+          .scale(yScatter);
+
+        // x - axis
+        svgStacked.append("g")
+          .attr("class", "xAxis")
+          .attr("transform", "translate(0," + heightScatter + ")")
+          .style("font-size", 16)
+          .call(xAxisScatter);
+
+        svgStacked.append("text")
+          .attr("class","textX")
+          .attr("id", "xLabelScatter")
+          .style("text-anchor", "middle")
+          .attr("y", heightScatter + 60)
+          .attr("x", widthScatter / 2)
+          .attr("font-size", 24)
+          .text("State of Execution");
+        //y-axis
+        svgStacked.append("g")
+          .attr("class", "yAxis")
+          .style("font-size", 16)
+          .call(yAxisScatter);
+
+        // y label
+        svgStacked.append("text")
+          .attr("class","textY")
+          .attr("id", "yLabelScatter")
+          .attr("transform", "rotate(-90)")
+          .attr("font-size", 24)
+          .attr("y", -75)
+          .attr("x", 100 - height)
+          .style("text-anchor", "middle")
+          .text("Total number of convicted people");
+
+        svgStacked.append("rect")
+          .attr("class", "RaceState")
+          .attr("y",70)
+          .attr("x",250)
+          .attr("height", "20%")
+          .attr("width", "30%")
+          .attr("fill", "gray");
+        svgStacked.append("text")
+        .attr("class", "RaceState")
+          .attr("y", 100)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .attr("x", 260)
+          .style("fill", "blue")
+          .text("Blue - Race, White");
+        svgStacked.append("text")
+        .attr("class", "RaceState")
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .attr("y", 130)
+          .attr("x", 260)
+          .style("fill", "tomato")
+          .text("Red - Race, Latino");
+        svgStacked.append("text")
+        .attr("class", "RaceState")
+          .attr("y", 160)
+          .attr("x", 260)
+          .attr("font-family", "calibri")
+          .attr("font-size", 30)
+          .style("fill", "green")
+          .text("Green - Race, Black");
+
+        svgStacked.selectAll(".bar")
+          .data(copyOfRaceState)
+          .enter()
+          .append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[0][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[0][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[0][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[0][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[0][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[0][1][2] + copyOfRaceState[0][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[0][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[1][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[1][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[1][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[1][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[1][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[1][1][1] + copyOfRaceState[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[1][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[1][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[1][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[1][1][2] + copyOfRaceState[1][1][1] + copyOfRaceState[1][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[1][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+
+          svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[2][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[2][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[2][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[2][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[2][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[2][1][1] + copyOfRaceState[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[2][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[2][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[2][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[2][1][2] + copyOfRaceState[2][1][1] + copyOfRaceState[2][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[2][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[3][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[3][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[3][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[3][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[3][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][1] + copyOfRaceState[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[3][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[3][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[3][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][2] + copyOfRaceState[3][1][1] + copyOfRaceState[3][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[3][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        
+          // start here
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[4][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[4][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[4][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[4][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[4][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[4][1][1] + copyOfRaceState[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[4][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[4][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[4][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[4][1][2] + copyOfRaceState[4][1][1] + copyOfRaceState[4][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[4][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[5][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[5][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[5][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[5][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[5][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[5][1][1] + copyOfRaceState[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[5][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[5][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[5][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[5][1][2] + copyOfRaceState[5][1][1] + copyOfRaceState[5][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[5][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[6][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[6][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[6][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[6][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[6][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[6][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[6][1][1] + copyOfRaceState[6][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[6][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[6][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[6][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[6][1][2] + copyOfRaceState[6][1][1] + copyOfRaceState[6][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[6][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[7][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[7][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[7][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[7][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[7][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[7][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[7][1][1] + copyOfRaceState[7][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[7][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[7][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[7][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[7][1][2] + copyOfRaceState[7][1][1] + copyOfRaceState[7][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[7][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[8][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[8][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[8][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[8][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[8][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[8][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[8][1][1] + copyOfRaceState[8][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[8][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[8][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[8][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[8][1][2] + copyOfRaceState[8][1][1] + copyOfRaceState[8][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[8][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[9][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[9][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[9][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[9][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[9][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[9][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[9][1][1] + copyOfRaceState[9][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[9][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[9][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[9][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[9][1][2] + copyOfRaceState[9][1][1] + copyOfRaceState[9][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[9][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[10][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[10][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[10][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[10][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[10][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[10][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[10][1][1] + copyOfRaceState[10][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[10][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[10][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[10][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[10][1][2] + copyOfRaceState[10][1][1] + copyOfRaceState[10][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[10][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[11][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[11][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[11][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[11][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[11][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[11][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[11][1][1] + copyOfRaceState[11][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[11][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[11][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[11][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[11][1][2] + copyOfRaceState[11][1][1] + copyOfRaceState[11][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[11][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[12][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[12][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[12][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[12][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[12][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[12][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[12][1][1] + copyOfRaceState[12][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[12][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[12][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[12][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[12][1][2] + copyOfRaceState[12][1][1] + copyOfRaceState[12][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[12][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[13][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[13][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[13][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[13][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[13][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[13][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[13][1][1] + copyOfRaceState[13][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[13][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[13][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[13][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[13][1][2] + copyOfRaceState[13][1][1] + copyOfRaceState[13][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[13][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[14][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[14][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[14][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[14][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[14][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[14][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[14][1][1] + copyOfRaceState[14][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[14][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[14][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[14][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[14][1][2] + copyOfRaceState[14][1][1] + copyOfRaceState[14][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[14][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[15][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[15][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[15][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[15][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[15][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[15][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[15][1][1] + copyOfRaceState[15][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[15][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[15][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[15][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[15][1][2] + copyOfRaceState[15][1][1] + copyOfRaceState[15][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[15][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[16][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[16][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[16][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[16][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[16][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[16][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[16][1][1] + copyOfRaceState[16][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[16][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[16][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[16][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[16][1][2] + copyOfRaceState[16][1][1] + copyOfRaceState[16][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[16][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[17][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[17][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[17][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[17][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[17][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[17][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[17][1][1] + copyOfRaceState[17][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[17][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[17][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[17][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[17][1][2] + copyOfRaceState[17][1][1] + copyOfRaceState[17][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[17][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[18][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[18][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[18][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[18][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[18][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[18][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[18][1][1] + copyOfRaceState[18][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[18][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[18][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[18][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[18][1][2] + copyOfRaceState[18][1][1] + copyOfRaceState[18][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[18][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[19][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[19][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[19][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[19][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[19][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[19][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[19][1][1] + copyOfRaceState[19][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[19][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[19][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[19][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[19][1][2] + copyOfRaceState[19][1][1] + copyOfRaceState[19][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[19][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[20][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[20][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[20][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[20][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[20][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[20][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[20][1][1] + copyOfRaceState[20][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[20][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[20][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[20][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[20][1][2] + copyOfRaceState[20][1][1] + copyOfRaceState[20][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[20][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[21][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[21][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[21][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[21][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[21][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[21][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[21][1][1] + copyOfRaceState[21][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[21][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[21][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[21][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[21][1][2] + copyOfRaceState[21][1][1] + copyOfRaceState[21][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[21][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[22][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[22][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[22][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[22][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[22][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[22][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[22][1][1] + copyOfRaceState[22][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[22][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[22][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[22][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][2] + copyOfRaceState[22][1][1] + copyOfRaceState[22][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[22][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[23][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[23][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[23][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[23][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[23][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[23][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[23][1][1] + copyOfRaceState[23][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[23][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[23][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[23][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[23][1][2] + copyOfRaceState[23][1][1] + copyOfRaceState[23][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[23][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[24][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[24][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[24][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[24][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[24][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[24][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[24][1][1] + copyOfRaceState[24][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[24][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[24][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[24][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][2] + copyOfRaceState[24][1][1] + copyOfRaceState[24][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[24][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[24][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[24][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[24][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[24][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[24][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[24][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[24][1][1] + copyOfRaceState[24][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[24][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[24][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[24][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[24][1][2] + copyOfRaceState[24][1][1] + copyOfRaceState[24][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[24][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[25][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[25][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[25][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[25][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[25][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[25][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[25][1][1] + copyOfRaceState[25][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[25][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[25][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[25][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[25][1][2] + copyOfRaceState[25][1][1] + copyOfRaceState[25][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[25][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[26][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[26][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[26][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[26][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[26][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[26][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[26][1][1] + copyOfRaceState[26][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[26][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[26][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[26][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[26][1][2] + copyOfRaceState[26][1][1] + copyOfRaceState[26][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[26][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[27][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[27][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[27][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[27][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[27][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[27][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[27][1][1] + copyOfRaceState[27][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[27][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[27][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[27][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][2] + copyOfRaceState[27][1][1] + copyOfRaceState[27][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[27][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[28][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[28][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[28][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[28][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[28][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[28][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[28][1][1] + copyOfRaceState[28][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[28][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[28][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[28][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[28][1][2] + copyOfRaceState[28][1][1] + copyOfRaceState[28][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[28][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[29][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[29][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[29][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[29][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[29][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[29][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[29][1][1] + copyOfRaceState[29][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[29][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[29][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[29][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[29][1][2] + copyOfRaceState[29][1][1] + copyOfRaceState[29][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[29][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[30][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[30][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[30][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[30][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[30][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[30][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[30][1][1] + copyOfRaceState[30][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[30][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[30][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[30][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[30][1][2] + copyOfRaceState[30][1][1] + copyOfRaceState[30][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[30][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[31][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[31][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[31][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[31][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[31][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[3][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[31][1][1] + copyOfRaceState[31][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[31][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[31][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[31][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][2] + copyOfRaceState[31][1][1] + copyOfRaceState[31][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[31][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[32][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[32][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[32][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[32][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[32][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[32][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[32][1][1] + copyOfRaceState[32][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[32][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[32][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[32][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][2] + copyOfRaceState[32][1][1] + copyOfRaceState[32][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[32][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[33][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[33][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[33][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[33][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[33][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[33][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[33][1][1] + copyOfRaceState[33][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[33][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[33][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[33][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[3][1][2] + copyOfRaceState[33][1][1] + copyOfRaceState[33][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[33][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[34][1][0] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[34][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[34][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[34][1][0]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "blue");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[34][1][1] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[34][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[34][1][1] + copyOfRaceState[34][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[34][1][1]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "tomato");
+
+        svgStacked.append("rect")
+          .on("mouseover", function(d) {   
+            labelScatter.style("opacity", 1); 
+            labelScatter.html("" + copyOfRaceState[34][1][2] + "");
+            labelScatter.style("visibility", "visible")
+               .style("left", (d3.event.pageX - 30) + "px")
+               .style("top", (d3.event.pageY - 60) + "px"); })
+          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
+          .transition()
+          .duration(2000)
+          .attr("class", "bar")
+          .attr("x", xScatter(copyOfRaceState[34][0]))
+          .attr("y", function(d) { return yScatter(copyOfRaceState[34][1][2] + copyOfRaceState[34][1][1] + copyOfRaceState[34][1][0]); } )
+          .attr("height", function(d) { return heightScatter - yScatter(copyOfRaceState[34][1][2]); })
+          .attr("width", xScatter.bandwidth())
+          .attr("fill", "green");
+  // end of xRaceState  
+  }
+ 
+  function calculateVictims(data) {
+    var aString = data["Number / Race / Sex of Victims"];
+    var sumVictims = aString.match(/\d+/g).map(Number).reduce((a, b) => a + b, 0);
+    return sumVictims; // no scaling for histogram
+  }
+
+  // Calculates all the data we need when drawing stacked histograms
+  function makeData() {
+
+        resetVariables()
+        var raceData = d3.nest()
+        .key(function(d) { return d.Race; })
+        .entries(copyOfData);
+
+        var stateData = d3.nest()
+        .key(function(d) { return d.State; })
+        .entries(copyOfData);        
+
+        for (j = 0; j < raceData.length; j++) {  
+          for (i = 0; i < raceData[j].values.length; i++) {
+              if (j == 0) {
+                // White race Age
+                if (tt.includes(Number(raceData[0].values[i].Age))) {
+                  white2030.push(raceData[0].values[i]);
+                }
+                if (tf.includes(Number(raceData[0].values[i].Age))) {
+                  white3040.push(raceData[0].values[i]);
+                }
+                if (ff.includes(Number(raceData[0].values[i].Age))) {
+                  white4050.push(raceData[0].values[i]);
+                }
+                if (fs.includes(Number(raceData[0].values[i].Age))) {
+                  white5060.push(raceData[0].values[i]);
+                }
+                if (ss.includes(Number(raceData[0].values[i].Age))) {
+                  white6070.push(raceData[0].values[i]); 
+                }
+                if (se.includes(Number(raceData[0].values[i].Age))) {
+                  white7080.push(raceData[0].values[i]); 
+                }
+              }
+              if (j == 1) {
+                if (tt.includes(Number(raceData[1].values[i].Age))) {
+                  latino2030.push(raceData[1].values[i]);
+                }
+                if (tf.includes(Number(raceData[1].values[i].Age))) {
+                  latino3040.push(raceData[1].values[i]);
+                }
+                if (ff.includes(Number(raceData[1].values[i].Age))) {
+                  latino4050.push(raceData[1].values[i]);
+                }
+                if (fs.includes(Number(raceData[1].values[i].Age))) {
+                  latino5060.push(raceData[1].values[i]);
+                }
+                if (ss.includes(Number(raceData[1].values[i].Age))) {
+                  latino6070.push(raceData[1].values[i]); 
+                }
+                if (se.includes(Number(raceData[1].values[i].Age))) {
+                  latino7080.push(raceData[1].values[i]); 
+                }
+              }
+              if (j == 2) {
+                if (tt.includes(Number(raceData[2].values[i].Age))) {
+                  black2030.push(raceData[2].values[i]);
+                }
+                if (tf.includes(Number(raceData[2].values[i].Age))) {
+                  black3040.push(raceData[2].values[i]);
+                }
+                if (ff.includes(Number(raceData[2].values[i].Age))) {
+                  black4050.push(raceData[2].values[i]);
+                }
+                if (fs.includes(Number(raceData[2].values[i].Age))) {
+                  black5060.push(raceData[2].values[i]);
+                }
+                if (ss.includes(Number(raceData[2].values[i].Age))) {
+                  black6070.push(raceData[2].values[i]); 
+                }
+                if (se.includes(Number(raceData[2].values[i].Age))) {
+                  black7080.push(raceData[2].values[i]); 
+                }
+              }
+              if (j == 3) {
+                if (tt.includes(Number(raceData[3].values[i].Age))) {
+                  american2030.push(raceData[3].values[i]);
+                }
+                if (tf.includes(Number(raceData[3].values[i].Age))) {
+                  american3040.push(raceData[3].values[i]);
+                }
+                if (ff.includes(Number(raceData[3].values[i].Age))) {
+                  american4050.push(raceData[3].values[i]);
+                }
+                if (fs.includes(Number(raceData[3].values[i].Age))) {
+                  american5060.push(raceData[3].values[i]);
+                }
+                if (ss.includes(Number(raceData[3].values[i].Age))) {
+                  american6070.push(raceData[3].values[i]); 
+                }
+                if (se.includes(Number(raceData[3].values[i].Age))) {
+                  american7080.push(raceData[3].values[i]); 
+                }
+              }
+              if (j == 4) {
+                if (tt.includes(Number(raceData[4].values[i].Age))) {
+                  asian2030.push(raceData[4].values[i]);
+                }
+                if (tf.includes(Number(raceData[4].values[i].Age))) {
+                  asian3040.push(raceData[4].values[i]);
+                }
+                if (ff.includes(Number(raceData[4].values[i].Age))) {
+                  asian4050.push(raceData[4].values[i]);
+                }
+                if (fs.includes(Number(raceData[4].values[i].Age))) {
+                  asian5060.push(raceData[4].values[i]);
+                }
+                if (ss.includes(Number(raceData[4].values[i].Age))) {
+                  asian6070.push(raceData[4].values[i]); 
+                }
+                if (se.includes(Number(raceData[4].values[i].Age))) {
+                  asian7080.push(raceData[4].values[i]); 
+                }
+              }
+              if (j == 5) {
+                if (tt.includes(Number(raceData[5].values[i].Age))) {
+                  other2030.push(raceData[5].values[i]);
+                }
+                if (tf.includes(Number(raceData[5].values[i].Age))) {
+                  other3040.push(raceData[5].values[i]);
+                }
+                if (ff.includes(Number(raceData[5].values[i].Age))) {
+                  other4050.push(raceData[5].values[i]);
+                }
+                if (fs.includes(Number(raceData[5].values[i].Age))) {
+                  other5060.push(raceData[5].values[i]);
+                }
+                if (ss.includes(Number(raceData[5].values[i].Age))) {
+                  other6070.push(raceData[5].values[i]); 
+                }
+                if (se.includes(Number(raceData[5].values[i].Age))) {
+                  other7080.push(raceData[5].values[i]); 
+                } 
+              }
+          }
+        }
+
+        // state Race
+        console.log(stateData)
+        for (j = 0; j < stateData.length; j++) {  
+          for (i = 0; i < stateData[j].values.length; i++) {
+            if (j == 0) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteSC.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoSC.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackSC.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 1) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteAR.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoAR.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackAR.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 2) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteID.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoID.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackID.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 3) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteVA.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoVA.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackVA.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 4) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteTX.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoTX.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackTX.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 5) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteWA.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoWA.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackWA.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 6) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteLA.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoLA.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackLA.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 7) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteMO.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoMO.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackMO.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 8) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteOK.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoOK.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackOK.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 9) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteGA.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoGA.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackGA.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 10) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteAL.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoAL.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackAL.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 11) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteFL.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoFL.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackFL.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 12) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteCA.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoCA.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackCA.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 13) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteAZ.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoAZ.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackAZ.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 14) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteOH.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoOH.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackOH.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 15) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteIN.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoIN.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackIN.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 16) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteNC.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoNC.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackNC.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 17) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteDE.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoDE.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackDE.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 18) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteNV.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoNV.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackNV.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 19) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteIL.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoIL.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackIL.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 20) {
+              if (stateData[j].values[i].Race == "White") {
+                  whitePA.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoPA.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackPA.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 21) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteMT.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoMT.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackMT.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 22) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteFE.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoFE.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackFE.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 23) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteUT.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoUT.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackUT.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 24) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteMS.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoMS.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackMS.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 25) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteKY.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoKY.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackKY.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 26) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteMD.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoMD.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackMD.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 27) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteOR.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoOR.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackOR.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 28) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteNE.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoNE.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackNE.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 29) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteWY.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoWY.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackWY.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 30) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteCO.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoCO.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackCO.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 31) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteNM.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoNM.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackNM.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 32) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteTN.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoTN.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackTN.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 33) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteCT.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoCT.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackCT.push(stateData[j].values[i]);
+              }
+            }
+            if (j == 34) {
+              if (stateData[j].values[i].Race == "White") {
+                  whiteSD.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Latino") {
+                  latinoSD.push(stateData[j].values[i]);
+              }
+              if (stateData[j].values[i].Race == "Black") {
+                  blackSD.push(stateData[j].values[i]);
+              }
+            }
+          }
+        }
+
+        var raceAgeData = [
+              [white2030.length, white3040.length, white4050.length, white5060.length, white6070.length, white7080.length],
+              [latino2030.length, latino3040.length, latino4050.length, latino5060.length, latino6070.length, latino7080.length],
+              [black2030.length, black3040.length, black4050.length, black5060.length, black6070.length, black7080.length],
+              [american2030.length, american3040.length, american4050.length, american5060.length, american6070.length, american7080.length],
+              [asian2030.length, asian3040.length ,asian4050.length ,asian5060.length ,asian6070.length ,asian7080.length],
+              [other2030.length, other3040.length ,other4050.length ,other5060.length ,other6070.length ,other7080.length]          
+              ];
+
+        var raceStateData = [
+              [whiteAL.length,latinoAL.length,blackAL.length],
+              [whiteAR.length,latinoAR.length,blackAR.length],
+              [whiteAZ.length,latinoAZ.length,blackAZ.length],
+              [whiteCA.length,latinoCA.length,blackCA.length],
+              [whiteCO.length,latinoCO.length,blackCO.length],
+              [whiteCT.length,latinoCT.length,blackCT.length],
+              [whiteDE.length,latinoDE.length,blackDE.length],
+              [whiteFE.length,latinoFE.length,blackFE.length],
+              [whiteFL.length,latinoFL.length,blackFL.length],
+              [whiteGA.length,latinoGA.length,blackGA.length],
+              [whiteID.length,latinoID.length,blackID.length],
+              [whiteIL.length,latinoIL.length,blackIL.length],
+              [whiteIN.length,latinoIN.length,blackIN.length],
+              [whiteKY.length,latinoKY.length,blackKY.length],
+              [whiteLA.length,latinoLA.length,blackLA.length],
+              [whiteMD.length,latinoMD.length,blackMD.length],
+              [whiteMO.length,latinoMO.length,blackMO.length],
+              [whiteMS.length,latinoMS.length,blackMS.length],
+              [whiteMT.length,latinoMT.length,blackMT.length],
+              [whiteNC.length,latinoNC.length,blackNC.length],
+              [whiteNE.length,latinoNE.length,blackNE.length],
+              [whiteNM.length,latinoNM.length,blackNM.length],
+              [whiteNV.length,latinoNV.length,blackNV.length],
+              [whiteOH.length,latinoOH.length,blackOH.length],
+              [whiteOK.length,latinoOK.length,blackOK.length],
+              [whiteOR.length,latinoOR.length,blackOR.length],
+              [whitePA.length,latinoPA.length,blackPA.length],
+              [whiteSC.length,latinoSC.length,blackSC.length],
+              [whiteSD.length,latinoSD.length,blackSD.length],
+              [whiteTN.length,latinoTN.length,blackTN.length],
+              [whiteTX.length,latinoTX.length,blackTX.length],
+              [whiteUT.length,latinoUT.length,blackUT.length],
+              [whiteVA.length,latinoVA.length,blackVA.length],
+              [whiteWA.length,latinoWA.length,blackWA.length],
+              [whiteWY.length,latinoWY.length,blackWY.length]
+            ];  
+            
+        // place data in a neat way when drawing the bar chart.
+        var raceAgePlot = [];
+        var raceStatePlot = [];
+            
+        for (i = 0; i < raceAgeData.length; i++) {
+            raceAgePlot[i] = [races[i], raceAgeData[i]];
+        }
+        
+        for (i = 0; i < raceStateData.length; i++) {
+            raceStatePlot[i] = [states[i], raceStateData[i]];
+        }
+
+        copyOfRaceAge = raceAgePlot;
+        copyOfRaceState = raceStatePlot;
+        console.log("makeData finished")
+  } //makeData() ends here
+
+  // as the name implies.
+  // We need to reset in order not to add extra data for histogram heights
+  function resetVariables() {
+        copyOfRaceAge = null;
+        copyOfRaceState = null;
+        // Race Age variables
+        white2030 = [];
+        white3040 = [];
+        white4050 = [];
+        white5060 = [];
+        white6070 = [];
+        white7080 = [];
+        latino2030 = [];
+        latino3040 = [];
+        latino4050 = [];
+        latino5060 = [];
+        latino6070 = [];
+        latino7080 = [];
+        american2030 = [];
+        american3040 = [];
+        american4050 = [];
+        american5060 = [];
+        american6070 = [];
+        american7080 = [];        
+        asian2030 = [];
+        asian3040 = [];
+        asian4050 = [];
+        asian5060 = [];
+        asian6070 = [];
+        asian7080 = [];
+        black2030 = [];
+        black3040 = [];
+        black4050 = [];
+        black5060 = [];
+        black6070 = [];
+        black7080 = [];
+        other2030 = [];
+        other3040 = [];
+        other4050 = [];
+        other5060 = [];
+        other6070 = [];
+        other7080 = [];
+
+        //Race State variables
+        whiteAL = [];
+        whiteAR = [];
+        whiteAZ = [];
+        whiteCA = [];
+        whiteCO = [];
+        whiteCT = [];
+        whiteDE = [];
+        whiteFE = [];
+        whiteFL = [];
+        whiteGA = [];
+        whiteID = [];
+        whiteIL = [];
+        whiteIN = [];
+        whiteKY = [];
+        whiteLA = [];
+        whiteMD = [];
+        whiteMO = [];
+        whiteMS = [];
+        whiteMT = [];
+        whiteNC = [];
+        whiteNE = [];
+        whiteNM = [];
+        whiteNV = [];
+        whiteOH = [];
+        whiteOK = [];
+        whiteOR = [];
+        whitePA = [];
+        whiteSC = [];
+        whiteSD = [];
+        whiteTN = [];
+        whiteTX = [];
+        whiteUT = [];
+        whiteVA = [];
+        whiteWA = [];
+        whiteWY = [];
+        latinoAL = [];
+        latinoAR = [];
+        latinoAZ = [];
+        latinoCA = [];
+        latinoCO = [];
+        latinoCT = [];
+        latinoDE = [];
+        latinoFE = [];
+        latinoFL = [];
+        latinoGA = [];
+        latinoID = [];
+        latinoIL = [];
+        latinoIN = [];
+        latinoKY = [];
+        latinoLA = [];
+        latinoMD = [];
+        latinoMO = [];
+        latinoMS = [];
+        latinoMT = [];
+        latinoNC = [];
+        latinoNE = [];
+        latinoNM = [];
+        latinoNV = [];
+        latinoOH = [];
+        latinoOK = [];
+        latinoOR = [];
+        latinoPA = [];
+        latinoSC = [];
+        latinoSD = [];
+        latinoTN = [];
+        latinoTX = [];
+        latinoUT = [];
+        latinoVA = [];
+        latinoWA = [];
+        latinoWY = [];
+        blackAL = [];
+        blackAR = [];
+        blackAZ = [];
+        blackCA = [];
+        blackCO = [];
+        blackCT = [];
+        blackDE = [];
+        blackFE = [];
+        blackFL = [];
+        blackGA = [];
+        blackID = [];
+        blackIL = [];
+        blackIN = [];
+        blackKY = [];
+        blackLA = [];
+        blackMD = [];
+        blackMO = [];
+        blackMS = [];
+        blackMT = [];
+        blackNC = [];
+        blackNE = [];
+        blackNM = [];
+        blackNV = [];
+        blackOH = [];
+        blackOK = [];
+        blackOR = [];
+        blackPA = [];
+        blackSC = [];
+        blackSD = [];
+        blackTN = [];
+        blackTX = [];
+        blackUT = [];
+        blackVA = [];
+        blackWA = [];
+        blackWY = [];
+  } // resetVariables() end here
+
+} // init function end
+   
 
  
  

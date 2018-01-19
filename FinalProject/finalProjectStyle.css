@@ -82,7 +82,7 @@
   padding-left: 5%; 
 }
 
-#scatterDiv {
+#stackedDiv {
   padding-left: 5%; 
   padding-top: 5%;
 }
@@ -92,7 +92,7 @@
   size: auto;
 }
 
-.bar {
+.bar1 {
   fill: #4d9900;
 }
 
@@ -129,6 +129,17 @@ div.tooltipTimeline {
   padding: 5px;
   font: 12px sans-serif;
   background: tomato;
+  border-radius: 10px;
+}
+
+div.tooltipScatter {
+  position: relative;
+  text-align: center;
+  width: 50px;
+  height: 25px;
+  padding: 5px;
+  font: 20px sans-serif;
+  background: lightgray;
   border-radius: 10px;
 }
 
@@ -193,15 +204,16 @@ body {
 /* dropdown button style */
 .dropbtnX {
     position: absolute;
-    left: 1175px;
-    top: 3690px;
+    left: 1375px;
+    top: 3590px;
     background-color: #4CAF50;
     color: white;
     padding: 16px;
-    font-size: 16px;
+    font-size: 26px;
     border: none;
     cursor: pointer;
-    min-width: 200px;
+    min-width: 300px;
+    min-height: 50px;
     border-radius: 10px;
 }
 
@@ -231,14 +243,14 @@ body {
 .dropdown-contentX {
     display: none;
     position: absolute;
-    left: 1175px;
-    top: 3690px;
-    padding-top: 50px;
+    left: 1375px;
+    top: 3590px;
+    padding-top: 70px;
     border-radius: 10px;
     text-align: center;
     background-color: #e0ebeb;
     opacity: 0.5;
-    width: 200px;
+    width: 300px;
     overflow: none;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
