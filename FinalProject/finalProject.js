@@ -1240,7 +1240,7 @@ function init() {
           .text("Age  > 70");
 
         for (i=0;i<2;i++) {
-          for (j=0;j<3;j++) {
+          for (j=0;j<6;j++) {
             yStacked_value = yStacked((copyOfSexAge[i][1].slice(0,j+1)).reduce(add,0));
 
         svgStacked.selectAll(".bar")
