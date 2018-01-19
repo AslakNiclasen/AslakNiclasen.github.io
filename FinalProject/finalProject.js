@@ -487,129 +487,11 @@ function init() {
 
       // TIMELINE END
 
-      // STACKED BARCHART START INITIAL CONTAINS AGE
-      svgStacked.selectAll("#xaxis").remove();
-        svgStacked.selectAll(".AgeRace").remove();
-        svgStacked.selectAll("#yaxis").remove();
-        svgStacked.selectAll("#xLabelScatter").remove();
-        svgStacked.selectAll("#yLabelScatter").remove();
-        svgStacked.selectAll(".xAxis").remove();
-        svgStacked.selectAll(".yAxis").remove();
-        svgStacked.selectAll("circle").remove();
-        svgStacked.selectAll(".bar").remove();
-        svgStacked.selectAll(".bar1").remove();
-        svgStacked.selectAll(".RaceState").remove();
+        // STACKED BARCHART DRAWED FIRST TIME
+        xAgeRace();
 
-        //yStackedCounter = 100; // barplot
-        xStacked = d3.scaleBand().rangeRound([0, widthScatter]).padding(0.6);
-        xStacked.domain(agesBand);
-
-        yStacked = d3.scaleLinear().rangeRound([heightScatter, 0]);
-        yStacked.domain([0, 600]);
-
-        xAxisStacked = d3.axisBottom()
-          .scale(xStacked);
-
-        yAxisStacked = d3.axisLeft()
-          .scale(yStacked);
-
-        ageData = d3.nest()
-              .key(function(d) { return d.Age; })
-                .entries(copyOfData);
- 
-        // an array containing the individually arrays of a given age within the bins
-        // i.e. a1 contains a set of arrays which has data where the age is between 20 and 29.
-        
-        a1Length = 0;
-        a2Length = 0;
-        a3Length = 0;
-        a4Length = 0;
-        a5Length = 0;
-        a6Length = 0;
-
-        for (j = 0; j < ageData.length; j++) {
-          if (tt.includes(Number(ageData[j].key)) == true) {
-            a1Length = a1Length + ageData[j].values.length;
-          }
-          if (tf.includes(Number(ageData[j].key)) == true) {
-            a2Length = a2Length + ageData[j].values.length;
-          }
-          if (ff.includes(Number(ageData[j].key)) == true) {
-            a3Length = a3Length + ageData[j].values.length;
-          }
-          if (fs.includes(Number(ageData[j].key)) == true) {
-            a4Length = a4Length + ageData[j].values.length;
-          }
-          if (se.includes(Number(ageData[j].key)) == true) {
-            a6Length = a6Length + ageData[j].values.length;
-          }
-          if (ss.includes(Number(ageData[j].key)) == true) {
-            a5Length = a5Length + ageData[j].values.length;
-          }
-        }
-        
-        //console.log(a1.length);
-        var ageData1 = [];
-        var ageData =  [a1Length, a2Length, a3Length, a4Length, a5Length, a6Length];
-        var agePlot = [];
-        for (i = 0; i < ageData.length; i++) {
-            agePlot[i] = [agesBand[i], ageData[i]];
-        }
-
-        // x - axis
-        svgStacked.append("g")
-          .attr("class", "xAxis")
-          .attr("transform", "translate(0," + heightScatter + ")")
-          .style("font-size", 16)
-          .call(xAxisStacked);
-
-        svgStacked.append("text")
-          .attr("class","textX")
-          .attr("id", "xLabelScatter")
-          .style("text-anchor", "middle")
-          .attr("y", heightScatter + 60)
-          .attr("x", widthScatter / 2)
-          .attr("font-size", 24)
-          .text("Age of convicted");
-
-        //y-axis
-        svgStacked.append("g")
-          .attr("class", "yAxis")
-          .style("font-size", 16)
-          .call(yAxisStacked);
-
-        // y label
-        svgStacked.append("text")
-          .attr("class","textY")
-          .attr("id", "yLabelScatter")
-          .attr("transform", "rotate(-90)")
-          .attr("font-size", 24)
-          .attr("y", -75)
-          .attr("x", 100 - height)
-          .style("text-anchor", "middle")
-          .text("Total number of convicted people");
-
-        // drawing the individual bars
-        svgStacked.selectAll(".bar")
-          .data(agePlot)
-          .enter()
-          .append("rect")
-          .on("mouseover", function(d) {   
-            labelScatter.style("opacity", 1); 
-            labelScatter.html("" + d[1] + "");
-            labelScatter.style("visibility", "visible")
-               .style("left", (d3.event.pageX - 30) + "px")
-               .style("top", (d3.event.pageY - 60) + "px"); })
-          .on("mouseout", function() { labelScatter.style("visibility", "hidden");})
-          .transition()
-          .duration(1000)
-          .attr("class", "bar1")
-          .attr("x", function(d) { return xStacked(d[0]); })
-          .attr("y", function(d) { return yStacked(d[1]); })
-          .attr("height", function(d) { return heightScatter - yStacked(d[1]); })
-          .attr("width", xStacked.bandwidth())
-      
       // mapping of each category for stacked barCHart
+      /*
       d3.select('#xAge')
         .on("click", xAge);
       d3.select('#xRace')
@@ -622,6 +504,7 @@ function init() {
         .on("click", xType);
       d3.select('#xState')
         .on("click", xState);
+      */
       d3.select('#xAgeRace')
         .on("click", xAgeRace);
       d3.select('#xRaceState')
@@ -1044,6 +927,8 @@ function init() {
       // full view
       click = 1;
       console.log("full view");
+      d3.selectAll("#changeView")
+        .text("Single Year View");
       removeTimeSlider()
       updateFullView(copyOfData);
     }
@@ -1051,6 +936,8 @@ function init() {
       //single year view
       click = 0;
       console.log("single year view");
+      d3.selectAll("#changeView")
+        .text("Full View");
       drawTimeSlider()
       updateTimeline(1977, copyOfData);
     }
@@ -1103,6 +990,7 @@ function init() {
 
   // scatterplot dropdown functions
   // drawing the data based on the picked item
+  /*
   function xAge() {
         svgStacked.selectAll("#xaxis").remove();
         svgStacked.selectAll(".AgeRace").remove();
@@ -1762,6 +1650,7 @@ function init() {
           .attr("height", function(d) { return heightScatter - yStacked(d[1]); })
           .attr("width", xStacked.bandwidth())
   } 
+  */
 
   function xAgeRace() {
         makeData();
@@ -1826,7 +1715,7 @@ function init() {
           .attr("y",70)
           .attr("x",590)
           .attr("height", "25%")
-          .attr("width", 300)
+          .attr("width", 160)
           .attr("rx", 20)
           .attr("ry", 20)
           .attr("fill", "lightgray");
@@ -1837,7 +1726,7 @@ function init() {
           .attr("font-size", 30)
           .attr("x", 600)
           .style("fill", "blue")
-          .text("Blue - ages 20 - 29");
+          .text("Age 20 - 29");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("font-family", "calibri")
@@ -1845,7 +1734,7 @@ function init() {
           .attr("y", 130)
           .attr("x", 600)
           .style("fill", "tomato")
-          .text("Red - ages 30 - 39");
+          .text("Age 30 - 39");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("y", 160)
@@ -1853,7 +1742,7 @@ function init() {
           .attr("font-family", "calibri")
           .attr("font-size", 30)
           .style("fill", "green")
-          .text("Green - ages 40 - 49");
+          .text("Age 40 - 49");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("y", 190)
@@ -1861,7 +1750,7 @@ function init() {
           .attr("font-family", "calibri")
           .attr("font-size", 30)
           .style("fill", "Steelblue")
-          .text("Lightblue - ages 50 - 59");
+          .text("Age 50 - 59");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("y", 220)
@@ -1869,7 +1758,7 @@ function init() {
           .attr("font-family", "calibri")
           .attr("font-size", 30)
           .style("fill", "yellow")
-          .text("Yellow - ages 60 - 69");
+          .text("Age 60 - 69");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("y", 250)
@@ -1877,7 +1766,7 @@ function init() {
           .attr("font-family", "calibri")
           .attr("font-size", 30)
           .style("fill", "black")
-          .text("Gray - ages  > 70");
+          .text("Age  > 70");
 
 
         // drawing the individual bars
@@ -2420,7 +2309,7 @@ function init() {
           .attr("y",70)
           .attr("x",250)
           .attr("height", "14%")
-          .attr("width", 260)
+          .attr("width", 180)
           .attr("rx", 20)
           .attr("ry", 20)
           .attr("fill", "lightgray");
@@ -2431,7 +2320,7 @@ function init() {
           .attr("font-size", 30)
           .attr("x", 260)
           .style("fill", "blue")
-          .text("Blue - Race, White");
+          .text("Race: White");
         svgStacked.append("text")
         .attr("class", "RaceState")
           .attr("font-family", "calibri")
@@ -2439,7 +2328,7 @@ function init() {
           .attr("y", 130)
           .attr("x", 260)
           .style("fill", "tomato")
-          .text("Red - Race, Latino");
+          .text("Race: Latino");
         svgStacked.append("text")
         .attr("class", "RaceState")
           .attr("y", 160)
@@ -2447,7 +2336,7 @@ function init() {
           .attr("font-family", "calibri")
           .attr("font-size", 30)
           .style("fill", "green")
-          .text("Green - Race, Black");
+          .text("Race: Black");
 
         svgStacked.selectAll(".bar")
           .data(copyOfRaceState)
@@ -4322,7 +4211,7 @@ function init() {
           .attr("y",70)
           .attr("x",590)
           .attr("height", "25%")
-          .attr("width", 300)
+          .attr("width", 160)
           .attr("rx", 20)
           .attr("ry", 20)
           .attr("fill", "lightgray");
@@ -4333,7 +4222,7 @@ function init() {
           .attr("font-size", 30)
           .attr("x", 600)
           .style("fill", "blue")
-          .text("Blue - ages 20 - 29");
+          .text("Age 20 - 29");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("font-family", "calibri")
@@ -4341,7 +4230,7 @@ function init() {
           .attr("y", 130)
           .attr("x", 600)
           .style("fill", "tomato")
-          .text("Red - ages 30 - 39");
+          .text("Age 30 - 39");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("y", 160)
@@ -4349,7 +4238,7 @@ function init() {
           .attr("font-family", "calibri")
           .attr("font-size", 30)
           .style("fill", "green")
-          .text("Green - ages 40 - 49");
+          .text("Age 40 - 49");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("y", 190)
@@ -4357,7 +4246,7 @@ function init() {
           .attr("font-family", "calibri")
           .attr("font-size", 30)
           .style("fill", "Steelblue")
-          .text("Lightblue - ages 50 - 59");
+          .text("Age 50 - 59");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("y", 220)
@@ -4365,7 +4254,7 @@ function init() {
           .attr("font-family", "calibri")
           .attr("font-size", 30)
           .style("fill", "yellow")
-          .text("Yellow - ages 60 - 69");
+          .text("Age 60 - 69");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("y", 250)
@@ -4373,7 +4262,7 @@ function init() {
           .attr("font-family", "calibri")
           .attr("font-size", 30)
           .style("fill", "black")
-          .text("Gray - ages  > 70");
+          .text("Age  > 70");
 
         svgStacked.selectAll(".bar")
           .data(copyOfSexAge)
@@ -4639,7 +4528,7 @@ function init() {
           .attr("y",70)
           .attr("x",590)
           .attr("height", "25%")
-          .attr("width", 300)
+          .attr("width", 160)
           .attr("rx", 20)
           .attr("ry", 20)
           .attr("fill", "lightgray");
@@ -4650,7 +4539,7 @@ function init() {
           .attr("font-size", 30)
           .attr("x", 600)
           .style("fill", "blue")
-          .text("Blue - ages 20 - 29");
+          .text("Age 20 - 29");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("font-family", "calibri")
@@ -4658,7 +4547,7 @@ function init() {
           .attr("y", 130)
           .attr("x", 600)
           .style("fill", "tomato")
-          .text("Red - ages 30 - 39");
+          .text("Age 30 - 39");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("y", 160)
@@ -4666,7 +4555,7 @@ function init() {
           .attr("font-family", "calibri")
           .attr("font-size", 30)
           .style("fill", "green")
-          .text("Green - ages 40 - 49");
+          .text("Age 40 - 49");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("y", 190)
@@ -4674,7 +4563,7 @@ function init() {
           .attr("font-family", "calibri")
           .attr("font-size", 30)
           .style("fill", "Steelblue")
-          .text("Lightblue - ages 50 - 59");
+          .text("Age 50 - 59");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("y", 220)
@@ -4682,7 +4571,7 @@ function init() {
           .attr("font-family", "calibri")
           .attr("font-size", 30)
           .style("fill", "yellow")
-          .text("Yellow - ages 60 - 69");
+          .text("Age 60 - 69");
         svgStacked.append("text")
         .attr("class", "AgeRace")
           .attr("y", 250)
@@ -4690,7 +4579,7 @@ function init() {
           .attr("font-family", "calibri")
           .attr("font-size", 30)
           .style("fill", "black")
-          .text("Gray - ages  > 70");
+          .text("Age  > 70");
 
         console.log(copyOfVictimsAge)
         svgStacked.selectAll(".bar")
